@@ -208,7 +208,7 @@ public final class AlcarisEconomy extends JavaPlugin {
             shutdownWithError("Database error during startup: " + e.getMessage());
         } catch (Exception e) {
             shutdownWithError("Fatal error during startup: " + e.getMessage());
-            e.printStackTrace();
+            getLogger().severe("Fatal error during startup: " + e.getMessage());
         }
     }
 
