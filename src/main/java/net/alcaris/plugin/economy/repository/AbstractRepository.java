@@ -159,6 +159,24 @@ public abstract class AbstractRepository {
         }
     }
 
+    public void addBalance(Connection conn, UUID uuid, long delta) throws SQLException {
+        try (PreparedStatement stmt = conn.prepareStatement(
+                "UPDATE `account` SET `balance` = `balance` + ? WHERE `uuid` = ?")) {
+            stmt.setLong(1, delta);
+            stmt.setBytes(2, uuidToBytes(uuid));
+            stmt.executeUpdate();
+        }
+    }
+
+    public void updateLastTxnAt(Connection conn, UUID uuid) throws SQLException {
+        try (PreparedStatement stmt = conn.prepareStatement(
+                "UPDATE `account` SET `last_txn_at` = ? WHERE `uuid` = ?")) {
+            stmt.setLong(1, System.currentTimeMillis());
+            stmt.setBytes(2, uuidToBytes(uuid));
+            stmt.executeUpdate();
+        }
+    }
+
     protected List<Map.Entry<UUID, Long>> dbGetTopBalances(int limit) throws SQLException {
         List<Map.Entry<UUID, Long>> result = new ArrayList<>();
         try (Connection conn = getConnection();

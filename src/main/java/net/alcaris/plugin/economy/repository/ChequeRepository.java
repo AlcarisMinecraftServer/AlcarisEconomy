@@ -63,6 +63,31 @@ public class ChequeRepository extends AbstractRepository {
         }
     }
 
+    public ChequeRow findById(Connection conn, long id) throws SQLException {
+        try (PreparedStatement stmt = conn.prepareStatement(
+                "SELECT `id`,`issuer_uuid`,`amount`,`note`,`used`,`used_by`,`used_at`,`created_at` FROM `cheque` WHERE `id`=?")) {
+            stmt.setLong(1, id);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (!rs.next()) return null;
+                byte[] usedByBytes = rs.getBytes(6);
+                return new ChequeRow(
+                        rs.getLong(1), bytesToUuid(rs.getBytes(2)), rs.getLong(3), rs.getString(4),
+                        rs.getBoolean(5), usedByBytes != null ? bytesToUuid(usedByBytes) : null,
+                        rs.getLong(7), rs.getLong(8));
+            }
+        }
+    }
+
+    public boolean markUsed(Connection conn, long id, UUID usedBy) throws SQLException {
+        try (PreparedStatement stmt = conn.prepareStatement(
+                "UPDATE `cheque` SET `used`=TRUE,`used_by`=?,`used_at`=? WHERE `id`=? AND `used`=FALSE")) {
+            stmt.setBytes(1, uuidToBytes(usedBy));
+            stmt.setLong(2, System.currentTimeMillis());
+            stmt.setLong(3, id);
+            return stmt.executeUpdate() > 0;
+        }
+    }
+
     public boolean markVoided(long id) throws SQLException {
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(

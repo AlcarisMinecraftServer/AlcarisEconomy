@@ -41,7 +41,6 @@ import net.alcaris.plugin.economy.repository.SyncRepository;
 import net.alcaris.plugin.economy.repository.TxLogRepository;
 import net.alcaris.plugin.economy.util.BalanceProviderRegistry;
 import net.milkbowl.vault.economy.Economy;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -66,6 +65,7 @@ public final class AlcarisEconomy extends JavaPlugin {
     private TxLogRepository txLogRepository;
     private PlayerLoanService playerLoanService;
     private ServerLoanService serverLoanService;
+    private ServerLoanRepository serverLoanRepository;
     private LoanScheduler loanScheduler;
 
     private volatile boolean initialized = false;
@@ -131,10 +131,11 @@ public final class AlcarisEconomy extends JavaPlugin {
 
             this.chequeRepository = new ChequeRepository(dbManager);
             this.txLogRepository = new TxLogRepository(dbManager);
-            this.chequeService = new ChequeService(repository, transferManager, chequeRepository, economyConfig, getLogger());
+            this.chequeService = new ChequeService(repository, transferManager, chequeRepository, economyConfig, dbManager, getLogger());
 
             PlayerLoanRepository playerLoanRepo = new PlayerLoanRepository(dbManager);
-            ServerLoanRepository serverLoanRepo = new ServerLoanRepository(dbManager);
+            this.serverLoanRepository = new ServerLoanRepository(dbManager);
+            ServerLoanRepository serverLoanRepo = serverLoanRepository;
             CollateralManager collateralManager = new CollateralManager(this, playerLoanRepo);
             this.playerLoanService = new PlayerLoanService(repository, playerLoanRepo, collateralManager, economyConfig, this);
             this.serverLoanService = new ServerLoanService(repository, serverLoanRepo, treasuryManager, transferManager, freezeManager, economyConfig);
@@ -279,7 +280,8 @@ public final class AlcarisEconomy extends JavaPlugin {
     public ChequeService getChequeService()             { return chequeService; }
     public ChequeRepository getChequeRepository()       { return chequeRepository; }
     public TxLogRepository getTxLogRepository()         { return txLogRepository; }
-    public PlayerLoanService getPlayerLoanService()     { return playerLoanService; }
-    public ServerLoanService getServerLoanService()     { return serverLoanService; }
-    public boolean isInitialized()                      { return initialized; }
+    public PlayerLoanService getPlayerLoanService()          { return playerLoanService; }
+    public ServerLoanService getServerLoanService()          { return serverLoanService; }
+    public ServerLoanRepository getServerLoanRepository()    { return serverLoanRepository; }
+    public boolean isInitialized()                           { return initialized; }
 }

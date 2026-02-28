@@ -119,12 +119,12 @@ public class LoanScheduler {
 
             boolean fullyPaid = newPrincipal <= 0 && newInterestDebt <= 0;
             if (fullyPaid) {
-                newStage = "COMPLETED";
-                serverLoanRepo.update(row.uuid(), 0, 0, 0, newStage, now);
+                serverLoanRepo.update(row.uuid(), 0, 0, 0, "NORMAL", now);
                 freezeManager.unfreeze(row.uuid(), false);
             } else {
                 if (newOverdueDays >= config.getLoanOverdue2Days() && !"OVERDUE_2".equals(newStage)) {
                     newStage = "OVERDUE_2";
+                    freezeManager.freeze(row.uuid(), FreezeManager.FreezeReason.LOAN_OVERDUE);
                 } else if (newOverdueDays >= config.getLoanOverdue1Days() && "NORMAL".equals(newStage)) {
                     newStage = "OVERDUE_1";
                     freezeManager.freeze(row.uuid(), FreezeManager.FreezeReason.LOAN_OVERDUE);
@@ -132,12 +132,13 @@ public class LoanScheduler {
                 serverLoanRepo.update(row.uuid(), newPrincipal, newInterestDebt, newOverdueDays, newStage, now);
             }
 
+            final boolean fullyPaidFinal = fullyPaid;
             final String stageFinal = newStage;
             final long interestFinal = interest;
             Bukkit.getScheduler().runTask(plugin, () -> {
                 org.bukkit.entity.Player online = Bukkit.getPlayer(row.uuid());
                 if (online != null) {
-                    if ("COMPLETED".equals(stageFinal)) {
+                    if (fullyPaidFinal) {
                         online.sendMessage(colorize("&a[サーバーローン] ローンが完済されました。"));
                     } else if ("OVERDUE_1".equals(stageFinal) || "OVERDUE_2".equals(stageFinal)) {
                         online.sendMessage(colorize("&c[サーバーローン] ローンが延滞中です。利息: "

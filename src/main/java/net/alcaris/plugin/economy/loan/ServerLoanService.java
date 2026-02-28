@@ -8,6 +8,7 @@ import net.alcaris.plugin.economy.repository.BalanceRepository;
 import org.bukkit.entity.Player;
 
 import java.sql.SQLException;
+import java.util.UUID;
 
 public class ServerLoanService {
 
@@ -76,10 +77,11 @@ public class ServerLoanService {
         newPrincipal = Math.max(0, newPrincipal - payment);
 
         boolean fullyPaid = newPrincipal <= 0 && newInterestDebt <= 0;
-        String newStage = fullyPaid ? "COMPLETED" : row.stage();
+        String newStage = fullyPaid ? "NORMAL" : row.stage();
+        int newOverdueDays = fullyPaid ? 0 : row.overdueDays();
 
         serverLoanRepo.update(player.getUniqueId(), newPrincipal, newInterestDebt,
-                row.overdueDays(), newStage, row.lastInterestAt());
+                newOverdueDays, newStage, row.lastInterestAt());
         treasuryManager.deposit(config.getLoanServerTreasuryKey(), actual,
                 "LOAN_REPAY", player.getUniqueId(), null);
         serverLoanRepo.insertLog(player.getUniqueId(), "SERVER", null, actual, "REPAY", null);
@@ -100,5 +102,25 @@ public class ServerLoanService {
 
     public ServerLoanRepository.ServerLoanRow getRow(Player player) throws SQLException {
         return serverLoanRepo.findByUuid(player.getUniqueId());
+    }
+
+    public ServerLoanRepository.ServerLoanRow getRowByUuid(UUID uuid) throws SQLException {
+        return serverLoanRepo.findByUuid(uuid);
+    }
+
+    public String adminForgive(UUID uuid) throws SQLException {
+        ServerLoanRepository.ServerLoanRow row = serverLoanRepo.findByUuid(uuid);
+        if (row == null) return "NO_LOAN";
+        serverLoanRepo.update(uuid, 0, 0, 0, "NORMAL", row.lastInterestAt());
+        freezeManager.unfreeze(uuid, false);
+        return null;
+    }
+
+    public String adminSetStage(UUID uuid, String stage) throws SQLException {
+        ServerLoanRepository.ServerLoanRow row = serverLoanRepo.findByUuid(uuid);
+        if (row == null) return "NO_LOAN";
+        serverLoanRepo.update(uuid, row.principal(), row.interestDebt(), row.overdueDays(),
+                stage, row.lastInterestAt());
+        return null;
     }
 }

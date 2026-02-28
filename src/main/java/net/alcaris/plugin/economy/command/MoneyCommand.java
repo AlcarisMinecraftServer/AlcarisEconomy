@@ -93,21 +93,20 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
         } else {
             Player player = CommandUtils.requirePlayer(sender);
             if (player == null) return true;
-            BalanceProviderRegistry.buildLines(player).thenAccept(lines -> {
-                Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-                    try {
-                        if (!repository.hasAccount(player.getUniqueId())) {
-                            CommandUtils.msg(sender, MessageConfig.NO_ACCOUNT);
-                            return;
-                        }
-                        CommandUtils.msg(sender, "&8&m----&r &6残高情報 &8&m----");
-                        for (String line : lines) {
-                            CommandUtils.msg(sender, line);
-                        }
-                    } catch (SQLException e) {
-                        logger.warning("[MoneyCommand] show-self failed: " + e.getMessage());
+            Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+                try {
+                    if (!repository.hasAccount(player.getUniqueId())) {
+                        CommandUtils.msg(sender, MessageConfig.NO_ACCOUNT);
+                        return;
                     }
-                });
+                    List<String> lines = BalanceProviderRegistry.buildLines(player).join();
+                    Bukkit.getScheduler().runTask(plugin, () -> {
+                        CommandUtils.msg(sender, "&8&m----&r &6残高情報 &8&m----");
+                        lines.forEach(line -> CommandUtils.msg(sender, line));
+                    });
+                } catch (SQLException e) {
+                    logger.warning("[MoneyCommand] show-self failed: " + e.getMessage());
+                }
             });
         }
         return true;

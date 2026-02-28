@@ -169,6 +169,18 @@ public class PlayerLoanService {
 
     public PlayerLoanRepository getRepo() { return loanRepo; }
 
+    public String adminVoid(long loanId) throws SQLException {
+        PlayerLoanRepository.PlayerLoanRow row = loanRepo.findById(loanId);
+        if (row == null) return "NOT_FOUND";
+        if (!"PENDING".equals(row.status()) && !"ACTIVE".equals(row.status())) return "ALREADY_FINAL";
+        loanRepo.updateStatus(loanId, "CANCELLED");
+        pendingLoans.remove(loanId);
+        if (row.collateralData() != null) {
+            collateralManager.seize(loanId, org.bukkit.Bukkit.getOfflinePlayer(row.lenderUuid()));
+        }
+        return null;
+    }
+
     private static org.bukkit.inventory.ItemStack ItemStack(long loanId, String borrowerName, long principal, long repayAmount, long dueAt, boolean b, long remaining) {
         return LoanNoteItem.create(loanId, borrowerName, principal, repayAmount, dueAt, b, remaining);
     }

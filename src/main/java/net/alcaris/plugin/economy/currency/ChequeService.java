@@ -1,14 +1,15 @@
 package net.alcaris.plugin.economy.currency;
 
+import net.alcaris.plugin.core.database.DatabaseManager;
 import net.alcaris.plugin.economy.bank.TransferManager;
 import net.alcaris.plugin.economy.config.EconomyConfig;
+import net.alcaris.plugin.economy.repository.AbstractRepository;
 import net.alcaris.plugin.economy.repository.BalanceRepository;
 import net.alcaris.plugin.economy.repository.ChequeRepository;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Set;
@@ -19,20 +20,25 @@ import java.util.logging.Logger;
 public class ChequeService {
 
     private final BalanceRepository repository;
+    private final AbstractRepository abstractRepo;
     private final TransferManager transferManager;
     private final ChequeRepository chequeRepository;
     private final EconomyConfig config;
+    private final DatabaseManager dbManager;
     private final Logger logger;
 
     private final Set<UUID> cooldown = Collections.synchronizedSet(
             Collections.newSetFromMap(new WeakHashMap<>()));
 
     public ChequeService(BalanceRepository repository, TransferManager transferManager,
-                         ChequeRepository chequeRepository, EconomyConfig config, Logger logger) {
+                         ChequeRepository chequeRepository, EconomyConfig config,
+                         DatabaseManager dbManager, Logger logger) {
         this.repository = repository;
+        this.abstractRepo = (AbstractRepository) repository;
         this.transferManager = transferManager;
         this.chequeRepository = chequeRepository;
         this.config = config;
+        this.dbManager = dbManager;
         this.logger = logger;
     }
 
@@ -60,21 +66,28 @@ public class ChequeService {
         if (cooldown.contains(userUuid)) return "COOLDOWN";
         cooldown.add(userUuid);
 
-        try {
-            ChequeRepository.ChequeRow row = chequeRepository.findById(chequeId);
-            if (row == null) return "NOT_FOUND";
-            if (row.used()) return "ALREADY_USED";
-            if (row.issuerUuid().equals(userUuid)) return "OWN_CHEQUE";
+        try (Connection conn = dbManager.getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                ChequeRepository.ChequeRow row = chequeRepository.findById(conn, chequeId);
+                if (row == null)                       { conn.rollback(); return "NOT_FOUND"; }
+                if (row.used())                        { conn.rollback(); return "ALREADY_USED"; }
+                if (row.issuerUuid().equals(userUuid)) { conn.rollback(); return "OWN_CHEQUE"; }
 
-            boolean ok = chequeRepository.markUsed(chequeId, userUuid);
-            if (!ok) return "ALREADY_USED";
+                boolean ok = chequeRepository.markUsed(conn, chequeId, userUuid);
+                if (!ok)                               { conn.rollback(); return "ALREADY_USED"; }
 
-            repository.addBalance(userUuid, row.amount());
-            repository.updateLastTxnAt(userUuid);
-            transferManager.logTransfer(null, userUuid, row.amount(), 0,
-                    TransferManager.TransferType.CHEQUE_USE, chequeId);
+                abstractRepo.addBalance(conn, userUuid, row.amount());
+                abstractRepo.updateLastTxnAt(conn, userUuid);
+                conn.commit();
 
-            return null;
+                transferManager.logTransfer(null, userUuid, row.amount(), 0,
+                        TransferManager.TransferType.CHEQUE_USE, chequeId);
+                return null;
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            }
         } catch (SQLException e) {
             logger.warning("[ChequeService] use failed: " + e.getMessage());
             return "DB_ERROR";
