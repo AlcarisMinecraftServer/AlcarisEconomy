@@ -1,0 +1,66 @@
+name: AlcarisEconomy
+version: '${version}'
+main: net.alcaris.plugin.economy.AlcarisEconomy
+api-version: '1.21'
+authors: [ 'Alcaris Team' ]
+description: Economy plugin for Alcaris
+website: https://www.alcaris.net
+
+depend:
+  - AlcarisCore
+  - Vault
+
+commands:
+  money:
+    description: Economy management commands
+    aliases: [eco]
+    usage: /<command> [show|pay|set|give|take|create|remove|top|reload|help]
+  pay:
+    description: Pay another player
+    usage: /<command> <player> <amount>
+  bank:
+    description: Bank/ATM operations
+    usage: /<command> [deposit|withdraw|transfer|unfreeze|show]
+  ecoadmin:
+    description: Economy admin commands
+    permission: alcariseconomy.admin
+    usage: /<command> [freeze|unfreeze|check|pool]
+  crypto:
+    description: Cryptocurrency commands
+    usage: /<command> [list|buy|sell|portfolio|history|admin]
+  treasury:
+    description: Treasury management
+    permission: alcariseconomy.treasury
+    usage: /<command> [list|show|deposit|withdraw|log|transfer]
+
+permissions:
+  alcariseconomy.admin:
+    description: Access to admin economy commands
+    default: op
+  alcariseconomy.treasury:
+    description: Access to treasury commands
+    default: op
+  alcariseconomy.money.set:
+    description: Set player balance
+    default: op
+  alcariseconomy.money.give:
+    description: Give money to player
+    default: op
+  alcariseconomy.money.take:
+    description: Take money from player
+    default: op
+  alcariseconomy.money.create:
+    description: Create player account
+    default: op
+  alcariseconomy.money.remove:
+    description: Remove player account
+    default: op
+  alcariseconomy.money.reload:
+    description: Reload plugin config
+    default: op
+  alcariseconomy.money.others:
+    description: View other players balance
+    default: op
+  alcariseconomy.crypto.admin:
+    description: Admin crypto commands
+    default: op

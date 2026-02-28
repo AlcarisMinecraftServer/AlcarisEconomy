@@ -1,0 +1,53 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Extract version from tag
+        run: |
+          echo "BUILD_VERSION=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_ENV"
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew clean shadowJar
+
+      - name: Find built JAR
+        run: |
+          JAR_PATH=$(find build/libs -name "*.jar" -type f | head -n 1)
+          echo "JAR_PATH=$JAR_PATH" >> "$GITHUB_ENV"
+          echo "JAR_NAME=$(basename $JAR_PATH)" >> "$GITHUB_ENV"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.JAR_PATH }}
+          body: |
+            ## AlcarisEconomy ${{ env.BUILD_VERSION }}
+            
+            Automated release built from tag `${{ github.ref_name }}`
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

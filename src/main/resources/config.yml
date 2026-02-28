@@ -1,0 +1,133 @@
+version: 1
+
+# 通貨設定
+currency:
+  defaultBalance: 10000
+  createAccountOnJoin: true
+  format:
+    singularMajor: "円"
+    pluralMajor: "円"
+    format: "{major}円"
+
+# 現金アイテム設定
+# ️ server_key は一度設定したら絶対に変更しないこと
+# 変更すると全既存現金アイテムが無効化される
+cash_item:
+  server_key: "CHANGE_THIS_TO_ANY_FIXED_STRING"
+  denominations:
+    - amount: 100
+      material: PAPER
+      custom_model_data: 1001
+      display_name: "&f&l百円札"
+      lore:
+        - "&7サーバー内通貨"
+        - "&e額面: &f100円"
+        - "&8[ 正規発行券 ]"
+      glint: false
+    - amount: 1000
+      material: PAPER
+      custom_model_data: 1002
+      display_name: "&a&l千円札"
+      lore:
+        - "&7サーバー内通貨"
+        - "&e額面: &f1,000円"
+        - "&8[ 正規発行券 ]"
+      glint: false
+    - amount: 10000
+      material: PAPER
+      custom_model_data: 1003
+      display_name: "&6&l壱万円札"
+      lore:
+        - "&7サーバー内通貨"
+        - "&e額面: &f10,000円"
+        - "&8[ 正規発行券 ]"
+      glint: false
+    - amount: 100000
+      material: PAPER
+      custom_model_data: 1004
+      display_name: "&b&l十万円札"
+      lore:
+        - "&7サーバー内通貨"
+        - "&e額面: &f100,000円"
+        - "&8[ 正規発行券 ]"
+      glint: true
+
+# --- 国庫設定 ---
+treasury:
+  routing:
+    transfer_fee: "general"
+    freeze_fee: "general"
+    crypto_fee: "general"
+  initial:
+    - key: "general"
+      description: "一般国庫 - 各種手数料・税収の集約先"
+
+# --- 遅延書き込み設定 ---
+lazyWrite: true
+
+# --- 送金手数料 ---
+transfer:
+  remote:
+    rate: 0.03
+    flat: 50
+    minimum: 50
+    maximum: 5000
+  atm:
+    flat: 100
+
+# --- 口座凍結 ---
+freeze:
+  inactive_days: 30
+  warning_days_before: 7
+  unfreeze_fee: 500
+
+# --- 利子 ---
+interest:
+  enabled: true
+  base_rate: 0.005
+  max_amount: 10000
+  apply_day: MONDAY
+  apply_hour: 0
+  activity:
+    combat_per_kill: 2
+    combat_weekly_cap: 100
+    mining_per_block: 1
+    mining_weekly_cap: 200
+    minigame_per_join: 10
+    minigame_weekly_cap: 100
+    chat_per_message: 1
+    chat_weekly_cap: 50
+    chat_cooldown_seconds: 60
+    total_weekly_cap: 300
+  mining_blocks:
+    - DIAMOND_ORE
+    - DEEPSLATE_DIAMOND_ORE
+    - IRON_ORE
+    - DEEPSLATE_IRON_ORE
+    - GOLD_ORE
+    - DEEPSLATE_GOLD_ORE
+    - COAL_ORE
+    - DEEPSLATE_COAL_ORE
+    - OAK_LOG
+    - BIRCH_LOG
+    - WHEAT
+
+# --- 仮想通貨 ---
+crypto:
+  enabled: true
+  fee_rate: 0.02
+  rate_update_interval: 3600
+  history_retention_hours: 168
+  assets:
+    - symbol: "SMC"
+      display_name: "スモコイン"
+      initial_rate: 1000
+      volatility: 0.03
+      max_rate: 10000
+      min_rate: 100
+    - symbol: "DGD"
+      display_name: "ダイヤゴールド"
+      initial_rate: 5000
+      volatility: 0.05
+      max_rate: 50000
+      min_rate: 500
