@@ -1,6 +1,5 @@
 package net.alcaris.plugin.economy.loan;
 
-import net.alcaris.plugin.economy.bank.TransferManager;
 import net.alcaris.plugin.economy.config.EconomyConfig;
 import net.alcaris.plugin.economy.repository.BalanceRepository;
 import org.bukkit.Bukkit;
@@ -10,9 +9,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.sql.SQLException;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Logger;
 
 public class PlayerLoanService {
 
@@ -21,7 +18,6 @@ public class PlayerLoanService {
     private final CollateralManager collateralManager;
     private final EconomyConfig config;
     private final JavaPlugin plugin;
-    private final Logger logger;
 
     private final Map<Long, Long> pendingLoans = new ConcurrentHashMap<>();
 
@@ -33,7 +29,6 @@ public class PlayerLoanService {
         this.collateralManager = collateralManager;
         this.config = config;
         this.plugin = plugin;
-        this.logger = plugin.getLogger();
     }
 
     public long create(Player lender, OfflinePlayer borrower, long principal, long repayAmount,
@@ -77,9 +72,6 @@ public class PlayerLoanService {
 
         loanRepo.updateStatus(loanId, "ACTIVE");
         pendingLoans.remove(loanId);
-
-        OfflinePlayer lender = Bukkit.getOfflinePlayer(row.lenderUuid());
-        String lenderName = lender.getName() != null ? lender.getName() : row.lenderUuid().toString();
 
         Bukkit.getScheduler().runTask(plugin, () -> {
             Player lenderOnline = Bukkit.getPlayer(row.lenderUuid());
@@ -179,10 +171,6 @@ public class PlayerLoanService {
             collateralManager.seize(loanId, org.bukkit.Bukkit.getOfflinePlayer(row.lenderUuid()));
         }
         return null;
-    }
-
-    private static org.bukkit.inventory.ItemStack ItemStack(long loanId, String borrowerName, long principal, long repayAmount, long dueAt, boolean b, long remaining) {
-        return LoanNoteItem.create(loanId, borrowerName, principal, repayAmount, dueAt, b, remaining);
     }
 
     private static String colorize(String msg) {

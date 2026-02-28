@@ -334,9 +334,7 @@ public class AdminCommand implements CommandExecutor, TabCompleter {
                     } catch (SQLException e) { logger.warning("[AdminCommand] loan setstage failed: " + e.getMessage()); }
                 });
             }
-            default -> {
-                CommandUtils.msg(sender, "&c不明なサブコマンドです。");
-            }
+            default -> CommandUtils.msg(sender, "&c不明なサブコマンドです。");
         }
         return true;
     }
@@ -353,7 +351,7 @@ public class AdminCommand implements CommandExecutor, TabCompleter {
     }
 
     @Override
-    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, String[] args) {
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
         return tabComplete(sender, args);
     }
 }
