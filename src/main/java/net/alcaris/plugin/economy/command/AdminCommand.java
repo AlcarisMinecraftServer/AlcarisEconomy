@@ -36,6 +36,10 @@ public class AdminCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (CommandUtils.checkPermission(sender, "alcariseconomy.admin")) return true;
+        return dispatch(sender, args);
+    }
+
+    public boolean dispatch(CommandSender sender, String[] args) {
         if (args.length == 0) return showHelp(sender);
         return switch (args[0].toLowerCase()) {
             case "freeze"   -> cmdFreeze(sender, args);
@@ -46,8 +50,14 @@ public class AdminCommand implements CommandExecutor, TabCompleter {
         };
     }
 
+    public List<String> tabComplete(CommandSender sender, String[] args) {
+        if (args.length == 1) return Arrays.asList("freeze", "unfreeze", "check", "pool");
+        if (args.length == 2 && !args[0].equalsIgnoreCase("pool")) return null;
+        return List.of();
+    }
+
     private boolean cmdFreeze(CommandSender sender, String[] args) {
-        if (args.length < 2) { CommandUtils.msg(sender, MessageConfig.format(MessageConfig.USAGE, "usage", "/ecoadmin freeze <player>")); return true; }
+        if (args.length < 2) { CommandUtils.msg(sender, MessageConfig.format(MessageConfig.USAGE, "usage", "/economy admin freeze <player>")); return true; }
         OfflinePlayer target = CommandUtils.findOfflinePlayer(args[1]);
         if (target == null) { CommandUtils.msg(sender, MessageConfig.format(MessageConfig.PLAYER_NOT_FOUND, "player", args[1])); return true; }
         String targetName = CommandUtils.displayName(target);
@@ -60,7 +70,7 @@ public class AdminCommand implements CommandExecutor, TabCompleter {
     }
 
     private boolean cmdUnfreeze(CommandSender sender, String[] args) {
-        if (args.length < 2) { CommandUtils.msg(sender, MessageConfig.format(MessageConfig.USAGE, "usage", "/ecoadmin unfreeze <player>")); return true; }
+        if (args.length < 2) { CommandUtils.msg(sender, MessageConfig.format(MessageConfig.USAGE, "usage", "/economy admin unfreeze <player>")); return true; }
         OfflinePlayer target = CommandUtils.findOfflinePlayer(args[1]);
         if (target == null) { CommandUtils.msg(sender, MessageConfig.format(MessageConfig.PLAYER_NOT_FOUND, "player", args[1])); return true; }
         String targetName = CommandUtils.displayName(target);
@@ -78,7 +88,7 @@ public class AdminCommand implements CommandExecutor, TabCompleter {
     }
 
     private boolean cmdCheck(CommandSender sender, String[] args) {
-        if (args.length < 2) { CommandUtils.msg(sender, MessageConfig.format(MessageConfig.USAGE, "usage", "/ecoadmin check <player>")); return true; }
+        if (args.length < 2) { CommandUtils.msg(sender, MessageConfig.format(MessageConfig.USAGE, "usage", "/economy admin check <player>")); return true; }
         OfflinePlayer target = CommandUtils.findOfflinePlayer(args[1]);
         if (target == null) { CommandUtils.msg(sender, MessageConfig.format(MessageConfig.PLAYER_NOT_FOUND, "player", args[1])); return true; }
         String targetName = CommandUtils.displayName(target);
@@ -112,17 +122,15 @@ public class AdminCommand implements CommandExecutor, TabCompleter {
 
     private boolean showHelp(CommandSender sender) {
         CommandUtils.msg(sender, "&8&m----&r &6&l管理者コマンド &8&m----");
-        CommandUtils.msg(sender, "&e/ecoadmin freeze <player> &7- アカウントを凍結");
-        CommandUtils.msg(sender, "&e/ecoadmin unfreeze <player> &7- アカウント凍結を解除");
-        CommandUtils.msg(sender, "&e/ecoadmin check <player> &7- アカウント詳細を表示");
-        CommandUtils.msg(sender, "&e/ecoadmin pool &7- DBプール統計を表示");
+        CommandUtils.msg(sender, "&e/economy admin freeze <player> &7- アカウントを凍結");
+        CommandUtils.msg(sender, "&e/economy admin unfreeze <player> &7- アカウント凍結を解除");
+        CommandUtils.msg(sender, "&e/economy admin check <player> &7- アカウント詳細を表示");
+        CommandUtils.msg(sender, "&e/economy admin pool &7- DBプール統計を表示");
         return true;
     }
 
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, String[] args) {
-        if (args.length == 1) return Arrays.asList("freeze", "unfreeze", "check", "pool");
-        if (args.length == 2 && !args[0].equalsIgnoreCase("pool")) return null;
-        return List.of();
+        return tabComplete(sender, args);
     }
 }

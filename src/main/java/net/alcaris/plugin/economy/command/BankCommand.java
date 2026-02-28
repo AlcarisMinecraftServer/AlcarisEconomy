@@ -205,11 +205,13 @@ public class BankCommand implements CommandExecutor, TabCompleter {
                         "fee", config.format(config.getUnfreezeFee())));
             } else if (error.equals("NOT_FROZEN")) {
                 CommandUtils.msg(sender, MessageConfig.UNFREEZE_NOT_FROZEN);
+            } else if (error.equals("LOAN_OVERDUE")) {
+                CommandUtils.msg(sender, "&cローン延滞による凍結は /loan repay で返済しないと解除できません。");
             } else if (error.startsWith("INSUFFICIENT")) {
                 CommandUtils.msg(sender, MessageConfig.format(MessageConfig.UNFREEZE_INSUFFICIENT,
                         "fee", config.format(config.getUnfreezeFee())));
             } else {
-                CommandUtils.msg(sender, "&cUnfreeze failed: " + error);
+                CommandUtils.msg(sender, "&c凍結解除に失敗しました: " + error);
             }
         });
         return true;

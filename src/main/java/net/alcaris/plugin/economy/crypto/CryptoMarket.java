@@ -6,6 +6,7 @@ import net.alcaris.plugin.economy.config.EconomyConfig;
 import net.alcaris.plugin.economy.repository.AbstractRepository;
 import net.alcaris.plugin.economy.repository.BalanceRepository;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.sql.Connection;
@@ -25,7 +26,7 @@ public class CryptoMarket {
     private static final long CRYPTO_MULTIPLIER = 100L;
 
     private final Map<String, CryptoAsset> assets = new HashMap<>();
-    private final RateEngine rateEngine = new RateEngine();
+    private RateEngine rateEngine;
     private final BalanceRepository balanceRepo;
     private final TreasuryManager treasuryManager;
     private final EconomyConfig config;
@@ -44,6 +45,7 @@ public class CryptoMarket {
     }
 
     public void initialize() throws SQLException {
+        this.rateEngine = new RateEngine(config, dbManager);
         for (EconomyConfig.CryptoAssetConfig ac : config.getCryptoAssets()) {
             CryptoAsset asset = new CryptoAsset(
                     ac.symbol(), ac.displayName(), ac.initialRate(),
@@ -65,17 +67,41 @@ public class CryptoMarket {
 
     private void updateRates() {
         long now = System.currentTimeMillis();
-        for (CryptoAsset asset : assets.values()) {
+
+        double econCorrection = 0.0;
+        try {
+            econCorrection = rateEngine.getEconomyIndexFetcher().fetchCorrection();
+        } catch (Exception e) {
+            logger.warning("[CryptoMarket] EconomyIndex fetch failed: " + e.getMessage());
+        }
+
+        Collection<CryptoAsset> allAssets = assets.values();
+        for (CryptoAsset asset : allAssets) {
             long netBuy = asset.consumeNetBuy();
-            long newRate = rateEngine.computeNewRate(asset, netBuy);
-            asset.setCurrentRate(newRate);
+            long totalSupply = fetchTotalSupply(asset.getSymbol());
+            long newMid = rateEngine.tick(asset, netBuy, totalSupply, allAssets, econCorrection);
+            asset.setCurrentRate(newMid);
             try {
                 saveRate(asset, now);
-                recordHistory(asset, newRate, now);
+                recordHistory(asset, newMid, now);
                 pruneHistory(asset.getSymbol(), now);
             } catch (SQLException e) {
                 logger.warning("[CryptoMarket] Rate update failed for " + asset.getSymbol() + ": " + e.getMessage());
             }
+        }
+    }
+
+    private long fetchTotalSupply(String symbol) {
+        try (Connection conn = dbManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                     "SELECT COALESCE(SUM(`amount`),0) FROM `crypto_holding` WHERE `symbol`=?")) {
+            stmt.setString(1, symbol);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next() ? rs.getLong(1) : 0L;
+            }
+        } catch (SQLException e) {
+            logger.warning("[CryptoMarket] fetchTotalSupply failed: " + e.getMessage());
+            return 0L;
         }
     }
 
@@ -85,7 +111,8 @@ public class CryptoMarket {
         CryptoAsset asset = assets.get(symbol);
         if (asset == null) return new TradeResult(false, 0, 0, "UNKNOWN_SYMBOL");
 
-        long totalCost = quantity * asset.getCurrentRate() / CRYPTO_MULTIPLIER;
+        long price = asset.getBuyPrice() > 0 ? asset.getBuyPrice() : asset.getCurrentRate();
+        long totalCost = quantity * price / CRYPTO_MULTIPLIER;
         long fee = Math.round(totalCost * config.getCryptoFeeRate());
         long totalWithFee = totalCost + fee;
 
@@ -117,7 +144,8 @@ public class CryptoMarket {
             long holding = getHolding(uuid, symbol);
             if (holding < quantity) return new TradeResult(false, 0, 0, "INSUFFICIENT_HOLDING");
 
-            long totalValue = quantity * asset.getCurrentRate() / CRYPTO_MULTIPLIER;
+            long price = asset.getSellPrice() > 0 ? asset.getSellPrice() : asset.getCurrentRate();
+            long totalValue = quantity * price / CRYPTO_MULTIPLIER;
             long fee = Math.round(totalValue * config.getCryptoFeeRate());
             long received = totalValue - fee;
 
@@ -185,6 +213,30 @@ public class CryptoMarket {
         return history;
     }
 
+    public String buildHoldingLine(Player player) {
+        try {
+            Map<String, Long> portfolio = getPortfolio(player.getUniqueId());
+            if (portfolio.isEmpty()) return null;
+            StringBuilder sb = new StringBuilder("&e仮想通貨: ");
+            boolean first = true;
+            for (Map.Entry<String, Long> entry : portfolio.entrySet()) {
+                if (entry.getValue() <= 0) continue;
+                CryptoAsset asset = assets.get(entry.getKey());
+                if (asset == null) continue;
+                double qty = (double) entry.getValue() / CRYPTO_MULTIPLIER;
+                long sellP = asset.getSellPrice() > 0 ? asset.getSellPrice() : asset.getCurrentRate();
+                long value = entry.getValue() * sellP / CRYPTO_MULTIPLIER;
+                if (!first) sb.append("・");
+                sb.append(String.format("&f%s×%.2f&e（評価額 &f%s&e）",
+                        entry.getKey(), qty, config.format(value)));
+                first = false;
+            }
+            return first ? null : sb.toString();
+        } catch (SQLException e) {
+            return null;
+        }
+    }
+
     public CryptoAsset getAsset(String symbol)       { return assets.get(symbol); }
     public Collection<CryptoAsset> getAllAssets()     { return assets.values(); }
     public boolean hasAsset(String symbol)            { return assets.containsKey(symbol); }
@@ -217,10 +269,12 @@ public class CryptoMarket {
     private void saveRate(CryptoAsset asset, long now) throws SQLException {
         try (Connection conn = dbManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(
-                     "UPDATE `crypto_asset` SET `current_rate` = ?, `updated_at` = ? WHERE `symbol` = ?")) {
+                     "UPDATE `crypto_asset` SET `current_rate`=?, `buy_price`=?, `sell_price`=?, `updated_at`=? WHERE `symbol`=?")) {
             stmt.setLong(1, asset.getCurrentRate());
-            stmt.setLong(2, now);
-            stmt.setString(3, asset.getSymbol());
+            stmt.setLong(2, asset.getBuyPrice());
+            stmt.setLong(3, asset.getSellPrice());
+            stmt.setLong(4, now);
+            stmt.setString(5, asset.getSymbol());
             stmt.executeUpdate();
         }
     }

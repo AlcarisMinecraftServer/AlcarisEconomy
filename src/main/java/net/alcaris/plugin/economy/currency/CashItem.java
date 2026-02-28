@@ -21,6 +21,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.bukkit.entity.Player;
+
 public class CashItem {
 
     private static NamespacedKey KEY_CASH;
@@ -123,6 +125,21 @@ public class CashItem {
             amounts.add(d.amount());
         }
         return amounts;
+    }
+
+    public static long countInventoryCash(Player player, EconomyConfig config) {
+        long total = 0;
+        for (ItemStack item : player.getInventory().getStorageContents()) {
+            if (item == null) continue;
+            ItemMeta meta = item.getItemMeta();
+            if (meta == null) continue;
+            PersistentDataContainer pdc = meta.getPersistentDataContainer();
+            if (pdc.getOrDefault(KEY_CASH, PersistentDataType.BOOLEAN, false)) {
+                Integer amt = pdc.get(KEY_AMOUNT, PersistentDataType.INTEGER);
+                if (amt != null) total += (long) amt * item.getAmount() * EconomyConfig.MULTIPLIER;
+            }
+        }
+        return total;
     }
 
     public static String generateChecksum(int amount, String serverKey) {

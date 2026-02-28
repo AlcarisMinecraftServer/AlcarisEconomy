@@ -5,6 +5,7 @@ import net.alcaris.plugin.economy.bank.TransferManager;
 import net.alcaris.plugin.economy.config.EconomyConfig;
 import net.alcaris.plugin.economy.config.MessageConfig;
 import net.alcaris.plugin.economy.repository.BalanceRepository;
+import net.alcaris.plugin.economy.util.BalanceProviderRegistry;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
@@ -48,7 +49,7 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
             return onCommand(sender, command, "money", newArgs);
         }
 
-        if (args.length == 0) return showHelp(sender);
+        if (args.length == 0) return cmdShow(sender, args);
 
         return switch (args[0].toLowerCase()) {
             case "show"   -> cmdShow(sender, args);
@@ -92,18 +93,21 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
         } else {
             Player player = CommandUtils.requirePlayer(sender);
             if (player == null) return true;
-            Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-                try {
-                    if (!repository.hasAccount(player.getUniqueId())) {
-                        CommandUtils.msg(sender, MessageConfig.NO_ACCOUNT);
-                        return;
+            BalanceProviderRegistry.buildLines(player).thenAccept(lines -> {
+                Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+                    try {
+                        if (!repository.hasAccount(player.getUniqueId())) {
+                            CommandUtils.msg(sender, MessageConfig.NO_ACCOUNT);
+                            return;
+                        }
+                        CommandUtils.msg(sender, "&8&m----&r &6残高情報 &8&m----");
+                        for (String line : lines) {
+                            CommandUtils.msg(sender, line);
+                        }
+                    } catch (SQLException e) {
+                        logger.warning("[MoneyCommand] show-self failed: " + e.getMessage());
                     }
-                    long balance = repository.getBalance(player.getUniqueId());
-                    CommandUtils.msg(sender, MessageConfig.format(
-                            MessageConfig.BALANCE_SELF, "balance", config.format(balance)));
-                } catch (SQLException e) {
-                    logger.warning("[MoneyCommand] show-self failed: " + e.getMessage());
-                }
+                });
             });
         }
         return true;

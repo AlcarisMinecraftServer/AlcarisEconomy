@@ -12,6 +12,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +20,8 @@ import java.util.UUID;
 import java.util.logging.Logger;
 
 public class FreezeManager {
+
+    public enum FreezeReason { INACTIVITY, LOAN_OVERDUE }
 
     private final BalanceRepository repository;
     private final TreasuryManager treasuryManager;
@@ -69,7 +72,7 @@ public class FreezeManager {
                 }
             }
             for (UUID uuid : toFreeze) {
-                repository.setFrozen(uuid, true);
+                freeze(uuid, FreezeReason.INACTIVITY);
                 Player player = Bukkit.getPlayer(uuid);
                 if (player != null) {
                     player.sendMessage(colorize(
@@ -113,6 +116,11 @@ public class FreezeManager {
         try {
             if (!repository.isFrozen(uuid)) return "NOT_FROZEN";
 
+            FreezeReason reason = getFreezeReason(uuid);
+            if (reason == FreezeReason.LOAN_OVERDUE) {
+                return "LOAN_OVERDUE";
+            }
+
             if (payFee) {
                 long fee = config.getUnfreezeFee();
                 long balance = repository.getBalance(uuid);
@@ -126,6 +134,7 @@ public class FreezeManager {
 
             repository.setFrozen(uuid, false);
             repository.updateLastTxnAt(uuid);
+            setFreezeReason(uuid, null);
             return null;
 
         } catch (SQLException e) {
@@ -134,14 +143,45 @@ public class FreezeManager {
         }
     }
 
-    public boolean freeze(UUID uuid) {
+    public boolean freeze(UUID uuid, FreezeReason reason) {
         try {
             repository.setFrozen(uuid, true);
+            setFreezeReason(uuid, reason);
             return true;
         } catch (SQLException e) {
             logger.warning("[FreezeManager] freeze failed: " + e.getMessage());
             return false;
         }
+    }
+
+    public boolean freeze(UUID uuid) {
+        return freeze(uuid, FreezeReason.INACTIVITY);
+    }
+
+    private void setFreezeReason(UUID uuid, FreezeReason reason) throws SQLException {
+        try (Connection conn = dbManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                     "UPDATE `account` SET `freeze_reason` = ? WHERE `uuid` = ?")) {
+            if (reason != null) stmt.setString(1, reason.name()); else stmt.setNull(1, java.sql.Types.VARCHAR);
+            stmt.setBytes(2, AbstractRepository.uuidToBytes(uuid));
+            stmt.executeUpdate();
+        }
+    }
+
+    private FreezeReason getFreezeReason(UUID uuid) throws SQLException {
+        try (Connection conn = dbManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                     "SELECT `freeze_reason` FROM `account` WHERE `uuid` = ?")) {
+            stmt.setBytes(1, AbstractRepository.uuidToBytes(uuid));
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    String val = rs.getString(1);
+                    if (val == null) return null;
+                    try { return FreezeReason.valueOf(val); } catch (IllegalArgumentException e) { return null; }
+                }
+            }
+        }
+        return null;
     }
 
     private static String colorize(String msg) {

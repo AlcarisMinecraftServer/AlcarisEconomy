@@ -12,7 +12,9 @@ import java.util.logging.Logger;
 public class TransferManager {
 
     public enum TransferType {
-        REMOTE_PAY, ATM_TRANSFER, INTEREST, FREEZE_FEE, CRYPTO, TREASURY_WITHDRAW
+        REMOTE_PAY, ATM_TRANSFER, INTEREST, FREEZE_FEE, CRYPTO, TREASURY_WITHDRAW,
+        CHEQUE_ISSUE, CHEQUE_USE,
+        LOAN_BORROW, LOAN_REPAY, LOAN_INTEREST
     }
 
     public record TransferResult(boolean success, long amount, long fee, String failReason) {}
@@ -96,17 +98,22 @@ public class TransferManager {
         };
     }
 
-    private void logTransfer(UUID from, UUID to, long amount, long fee, TransferType type) {
+    public void logTransfer(UUID from, UUID to, long amount, long fee, TransferType type) {
+        logTransfer(from, to, amount, fee, type, null);
+    }
+
+    public void logTransfer(UUID from, UUID to, long amount, long fee, TransferType type, Long chequeId) {
         try (Connection conn = dbManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(
-                     "INSERT INTO `transfer_log` (`from_uuid`, `to_uuid`, `amount`, `fee`, `type`, `created_at`)" +
-                             " VALUES (?, ?, ?, ?, ?, ?)")) {
+                     "INSERT INTO `transfer_log` (`from_uuid`, `to_uuid`, `amount`, `fee`, `type`, `cheque_id`, `created_at`)" +
+                             " VALUES (?, ?, ?, ?, ?, ?, ?)")) {
             stmt.setBytes(1, from != null ? net.alcaris.plugin.economy.repository.AbstractRepository.uuidToBytes(from) : null);
             stmt.setBytes(2, to != null ? net.alcaris.plugin.economy.repository.AbstractRepository.uuidToBytes(to) : null);
             stmt.setLong(3, amount);
             stmt.setLong(4, fee);
             stmt.setString(5, type.name());
-            stmt.setLong(6, System.currentTimeMillis());
+            if (chequeId != null) stmt.setLong(6, chequeId); else stmt.setNull(6, java.sql.Types.BIGINT);
+            stmt.setLong(7, System.currentTimeMillis());
             stmt.executeUpdate();
         } catch (SQLException e) {
             logger.warning("[TransferManager] Failed to log transfer: " + e.getMessage());

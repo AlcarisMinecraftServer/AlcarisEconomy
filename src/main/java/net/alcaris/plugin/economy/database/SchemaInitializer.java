@@ -124,6 +124,77 @@ public class SchemaInitializer {
             createIndexIfAbsent(stmt, "idx_treasury_log_key",    "treasury_log",       "(`treasury_key`, `created_at` DESC)");
             createIndexIfAbsent(stmt, "idx_crypto_rate_history", "crypto_rate_history","(`symbol`, `recorded_at` DESC)");
 
+            try { stmt.executeUpdate("ALTER TABLE `account` ADD COLUMN `freeze_reason` ENUM('INACTIVITY','LOAN_OVERDUE') DEFAULT NULL"); } catch (SQLException ignored) {}
+            try { stmt.executeUpdate("ALTER TABLE `transfer_log` MODIFY COLUMN `type` VARCHAR(30) NOT NULL"); } catch (SQLException ignored) {}
+            try { stmt.executeUpdate("ALTER TABLE `transfer_log` ADD COLUMN `cheque_id` BIGINT DEFAULT NULL"); } catch (SQLException ignored) {}
+            try { stmt.executeUpdate("ALTER TABLE `crypto_asset` ADD COLUMN `trend_state` ENUM('BULL','BEAR','NEUTRAL') NOT NULL DEFAULT 'NEUTRAL'"); } catch (SQLException ignored) {}
+            try { stmt.executeUpdate("ALTER TABLE `crypto_asset` ADD COLUMN `trend_started_at` BIGINT DEFAULT NULL"); } catch (SQLException ignored) {}
+            try { stmt.executeUpdate("ALTER TABLE `crypto_asset` ADD COLUMN `bubble_phase` ENUM('NORMAL','BUBBLE','CRASH','RECOVERY') NOT NULL DEFAULT 'NORMAL'"); } catch (SQLException ignored) {}
+            try { stmt.executeUpdate("ALTER TABLE `crypto_asset` ADD COLUMN `realized_vol` DOUBLE NOT NULL DEFAULT 0.0"); } catch (SQLException ignored) {}
+            try { stmt.executeUpdate("ALTER TABLE `crypto_asset` ADD COLUMN `buy_price` BIGINT NOT NULL DEFAULT 0"); } catch (SQLException ignored) {}
+            try { stmt.executeUpdate("ALTER TABLE `crypto_asset` ADD COLUMN `sell_price` BIGINT NOT NULL DEFAULT 0"); } catch (SQLException ignored) {}
+
+            stmt.executeUpdate("""
+                CREATE TABLE IF NOT EXISTS `cheque` (
+                    `id`          BIGINT       PRIMARY KEY AUTO_INCREMENT,
+                    `issuer_uuid` BINARY(16)   NOT NULL,
+                    `amount`      BIGINT       NOT NULL,
+                    `note`        VARCHAR(100) DEFAULT NULL,
+                    `used`        BOOLEAN      NOT NULL DEFAULT FALSE,
+                    `used_by`     BINARY(16)   DEFAULT NULL,
+                    `used_at`     BIGINT       DEFAULT NULL,
+                    `created_at`  BIGINT       NOT NULL
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+                """);
+            createIndexIfAbsent(stmt, "idx_cheque_issuer", "cheque", "(`issuer_uuid`, `created_at` DESC)");
+
+            stmt.executeUpdate("""
+                CREATE TABLE IF NOT EXISTS `player_loan` (
+                    `id`              BIGINT   PRIMARY KEY AUTO_INCREMENT,
+                    `lender_uuid`     BINARY(16) NOT NULL,
+                    `borrower_uuid`   BINARY(16) NOT NULL,
+                    `principal`       BIGINT   NOT NULL,
+                    `repay_amount`    BIGINT   NOT NULL,
+                    `remaining`       BIGINT   NOT NULL,
+                    `collateral_data` MEDIUMTEXT DEFAULT NULL,
+                    `status` ENUM('PENDING','ACTIVE','COMPLETED','DEFAULTED','CANCELLED') NOT NULL DEFAULT 'PENDING',
+                    `due_at`          BIGINT   NOT NULL,
+                    `created_at`      BIGINT   NOT NULL,
+                    `completed_at`    BIGINT   DEFAULT NULL
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+                """);
+            createIndexIfAbsent(stmt, "idx_player_loan_lender",   "player_loan", "(`lender_uuid`, `status`)");
+            createIndexIfAbsent(stmt, "idx_player_loan_borrower", "player_loan", "(`borrower_uuid`, `status`)");
+            createIndexIfAbsent(stmt, "idx_player_loan_due",      "player_loan", "(`due_at`, `status`)");
+
+            stmt.executeUpdate("""
+                CREATE TABLE IF NOT EXISTS `server_loan` (
+                    `uuid`             BINARY(16) NOT NULL PRIMARY KEY,
+                    `principal`        BIGINT     NOT NULL DEFAULT 0,
+                    `interest_debt`    BIGINT     NOT NULL DEFAULT 0,
+                    `overdue_days`     INTEGER    NOT NULL DEFAULT 0,
+                    `stage` ENUM('NORMAL','OVERDUE_1','OVERDUE_2') NOT NULL DEFAULT 'NORMAL',
+                    `autopay_amount`   BIGINT     DEFAULT NULL,
+                    `last_interest_at` BIGINT     NOT NULL DEFAULT 0,
+                    `created_at`       BIGINT     NOT NULL,
+                    `updated_at`       BIGINT     NOT NULL
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+                """);
+
+            stmt.executeUpdate("""
+                CREATE TABLE IF NOT EXISTS `loan_log` (
+                    `log_id`    BIGINT   PRIMARY KEY AUTO_INCREMENT,
+                    `loan_type` ENUM('PLAYER','SERVER') NOT NULL,
+                    `loan_id`   BIGINT   DEFAULT NULL,
+                    `uuid`      BINARY(16) NOT NULL,
+                    `amount`    BIGINT   NOT NULL,
+                    `type`      VARCHAR(30) NOT NULL,
+                    `note`      VARCHAR(200) DEFAULT NULL,
+                    `created_at` BIGINT  NOT NULL
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+                """);
+            createIndexIfAbsent(stmt, "idx_loan_log_uuid", "loan_log", "(`uuid`, `created_at` DESC)");
+
             logger.info("Database schema initialized successfully.");
         }
     }

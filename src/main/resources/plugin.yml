@@ -13,7 +13,6 @@ depend:
 commands:
   money:
     description: Economy management commands
-    aliases: [eco]
     usage: /<command> [show|pay|set|give|take|create|remove|top|reload|help]
   pay:
     description: Pay another player
@@ -21,10 +20,9 @@ commands:
   bank:
     description: Bank/ATM operations
     usage: /<command> [deposit|withdraw|transfer|unfreeze|show]
-  ecoadmin:
-    description: Economy admin commands
-    permission: alcariseconomy.admin
-    usage: /<command> [freeze|unfreeze|check|pool]
+  economy:
+    description: Economy system commands
+    usage: /<command> admin [freeze|unfreeze|check|pool|set|give|take|cheque|txlog|loan]
   crypto:
     description: Cryptocurrency commands
     usage: /<command> [list|buy|sell|portfolio|history|admin]
@@ -32,6 +30,15 @@ commands:
     description: Treasury management
     permission: alcariseconomy.treasury
     usage: /<command> [list|show|deposit|withdraw|log|transfer]
+  cheque:
+    description: Cheque management
+    usage: /<command> <amount> [note] | list [page]
+  txlog:
+    description: Transaction log
+    usage: /<command> [type|page]
+  loan:
+    description: Loan management
+    usage: /<command> [create|accept|deny|repay|collateral|list|info|server|cancel]
 
 permissions:
   alcariseconomy.admin:
@@ -64,3 +71,9 @@ permissions:
   alcariseconomy.crypto.admin:
     description: Admin crypto commands
     default: op
+  alcariseconomy.cheque:
+    description: Use cheque commands
+    default: true
+  alcariseconomy.loan:
+    description: Use loan commands
+    default: true

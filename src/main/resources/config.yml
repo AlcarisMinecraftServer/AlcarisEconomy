@@ -1,6 +1,5 @@
 version: 1
 
-# 通貨設定
 currency:
   defaultBalance: 10000
   createAccountOnJoin: true
@@ -9,9 +8,6 @@ currency:
     pluralMajor: "円"
     format: "{major}円"
 
-# 現金アイテム設定
-# ️ server_key は一度設定したら絶対に変更しないこと
-# 変更すると全既存現金アイテムが無効化される
 cash_item:
   server_key: "CHANGE_THIS_TO_ANY_FIXED_STRING"
   denominations:
@@ -52,7 +48,6 @@ cash_item:
         - "&8[ 正規発行券 ]"
       glint: true
 
-# --- 国庫設定 ---
 treasury:
   routing:
     transfer_fee: "general"
@@ -62,10 +57,8 @@ treasury:
     - key: "general"
       description: "一般国庫 - 各種手数料・税収の集約先"
 
-# --- 遅延書き込み設定 ---
 lazyWrite: true
 
-# --- 送金手数料 ---
 transfer:
   remote:
     rate: 0.03
@@ -75,13 +68,11 @@ transfer:
   atm:
     flat: 100
 
-# --- 口座凍結 ---
 freeze:
   inactive_days: 30
   warning_days_before: 7
   unfreeze_fee: 500
 
-# --- 利子 ---
 interest:
   enabled: true
   base_rate: 0.005
@@ -112,7 +103,6 @@ interest:
     - BIRCH_LOG
     - WHEAT
 
-# --- 仮想通貨 ---
 crypto:
   enabled: true
   fee_rate: 0.02
@@ -125,9 +115,78 @@ crypto:
       volatility: 0.03
       max_rate: 10000
       min_rate: 100
+      clustering_factor: 2.0
+      clustering_lookback: 10
     - symbol: "DGD"
       display_name: "ダイヤゴールド"
       initial_rate: 5000
       volatility: 0.05
       max_rate: 50000
       min_rate: 500
+      clustering_factor: 2.5
+      clustering_lookback: 10
+  engine:
+    trend:
+      bull_bias: 0.62
+      bear_bias: 0.38
+      reversal_chance: 0.05
+      neutral_reversal: 0.10
+      max_duration_hours: 72
+      reversal_shock: 1.75
+    bubble:
+      enabled: true
+      lookback_ticks: 30
+      overheat_threshold: 1.50
+      overcool_threshold: -0.60
+      crash_first_drop_min: 0.20
+      crash_first_drop_max: 0.35
+      aftershock_count: 3
+      recovery_hours_min: 6
+      recovery_hours_max: 24
+    impact:
+      coefficient: 0.3
+      immediate_threshold: 0.05
+      large_threshold: 0.15
+      large_trade_announce: true
+    spread:
+      base: 0.02
+      min: 0.005
+      max: 0.10
+    spillover:
+      enabled: true
+      ratio: 0.25
+      threshold: 0.10
+    economy_index:
+      enabled: true
+      max_correction: 0.03
+      transfer_weight: 1.0
+      online_weight: 0.5
+      freeze_weight: 0.5
+      treasury_stability_threshold: 1000000
+      treasury_stability_factor: 0.9
+
+cheque:
+  enabled: true
+  min_amount: 1
+  max_amount: 1000000
+  max_note_length: 50
+  custom_model_data: 2001
+
+loan:
+  player:
+    enabled: true
+    max_duration_days: 180
+    collateral_accept_timeout: 60
+    overdue_interest_rate: 0.005
+    overdue_interest_cap: 3.0
+    note_custom_model_data: 3001
+  server:
+    enabled: true
+    borrow_limit: 500000
+    borrow_limit_multiplier: 2.0
+    daily_interest_rate: 0.003
+    overdue_1_days: 7
+    overdue_1_rate: 0.005
+    overdue_2_days: 14
+    overdue_2_rate: 0.010
+    treasury_key: "general"

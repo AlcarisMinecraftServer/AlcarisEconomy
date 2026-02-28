@@ -2,6 +2,7 @@ package net.alcaris.plugin.economy.interest;
 
 import net.alcaris.plugin.core.database.DatabaseManager;
 import net.alcaris.plugin.economy.config.EconomyConfig;
+import net.alcaris.plugin.economy.loan.ServerLoanRepository;
 import net.alcaris.plugin.economy.repository.AbstractRepository;
 import net.alcaris.plugin.economy.repository.BalanceRepository;
 import org.bukkit.Bukkit;
@@ -30,6 +31,7 @@ public class InterestScheduler {
     private final DatabaseManager dbManager;
     private final JavaPlugin plugin;
     private final Logger logger;
+    private ServerLoanRepository serverLoanRepo;
 
     public InterestScheduler(BalanceRepository repository, ActivityTracker activityTracker,
                              EconomyConfig config, DatabaseManager dbManager, JavaPlugin plugin) {
@@ -39,6 +41,10 @@ public class InterestScheduler {
         this.dbManager = dbManager;
         this.plugin = plugin;
         this.logger = plugin.getLogger();
+    }
+
+    public void setServerLoanRepo(ServerLoanRepository serverLoanRepo) {
+        this.serverLoanRepo = serverLoanRepo;
     }
 
     public void start() {
@@ -88,6 +94,11 @@ public class InterestScheduler {
 
             try {
                 if (repository.isFrozen(uuid)) continue;
+
+                if (serverLoanRepo != null) {
+                    ServerLoanRepository.ServerLoanRow loanRow = serverLoanRepo.findByUuid(uuid);
+                    if (loanRow != null && (loanRow.stage().startsWith("OVERDUE"))) continue;
+                }
 
                 double multiplier = getMultiplier(score);
                 if (multiplier == 0.0) continue;
