@@ -17,9 +17,7 @@ public final class MessageConfig {
     public static final String NO_ACCOUNT                = PREFIX + "&c経済アカウントを持っていません。";
     public static final String TARGET_NO_ACCOUNT         = PREFIX + "&e{player} &cは経済アカウントを持っていません。";
     public static final String ACCOUNT_EXISTS            = PREFIX + "&e{player} &cはすでにアカウントを持っています。";
-    public static final String ACCOUNT_ALREADY_EXISTS_SELF = PREFIX + "&cすでにアカウントを持っています。";
 
-    public static final String BALANCE_SELF        = PREFIX + "&a残高: &e{balance}";
     public static final String BALANCE_OTHER       = PREFIX + "&e{player}&a の残高: &e{balance}";
     public static final String BALANCE_SET         = PREFIX + "&e{player}&a の残高を &e{amount}&a に設定しました。";
     public static final String BALANCE_GIVEN       = PREFIX + "&e{player}&a に &e{amount}&a を付与しました。";
@@ -28,8 +26,6 @@ public final class MessageConfig {
 
     public static final String PAY_SENT      = PREFIX + "&e{player}&a に &e{amount}&a を送金しました。手数料: &e{fee}&a。";
     public static final String PAY_RECEIVED  = PREFIX + "&e{player}&a から &e{amount}&a を受け取りました。";
-    public static final String PAY_SELF      = PREFIX + "&c自分自身には送金できません。";
-    public static final String PAY_LIMIT     = PREFIX + "&c送金額が上限を超えています。";
     public static final String SENDER_FROZEN   = PREFIX + "&cアカウントが凍結されています。&e/bank unfreeze &cで解除できます。";
     public static final String RECEIVER_FROZEN = PREFIX + "&e{player}&a のアカウントは凍結中のため受け取れません。";
 

@@ -260,7 +260,7 @@ public class BankCommand implements CommandExecutor, TabCompleter {
     private static List<String> filterOnlinePlayers(String partial) {
         String lower = partial.toLowerCase();
         return org.bukkit.Bukkit.getOnlinePlayers().stream()
-                .map(p -> p.getName())
+                .map(Player::getName)
                 .filter(n -> n.toLowerCase().startsWith(lower))
                 .collect(java.util.stream.Collectors.toList());
     }

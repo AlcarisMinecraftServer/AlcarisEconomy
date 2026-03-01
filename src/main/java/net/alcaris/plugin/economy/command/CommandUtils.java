@@ -89,10 +89,6 @@ public final class CommandUtils {
         return null;
     }
 
-    public static String fmt(long internal, EconomyConfig cfg) {
-        return cfg.format(internal);
-    }
-
     public static String displayName(OfflinePlayer player) {
         String name = player.getName();
         return name != null ? name : player.getUniqueId().toString();

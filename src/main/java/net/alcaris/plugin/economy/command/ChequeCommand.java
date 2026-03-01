@@ -93,10 +93,12 @@ public class ChequeCommand implements CommandExecutor, TabCompleter {
                 else CommandUtils.msg(sender, "&c発行に失敗しました: " + msg);
             } catch (IllegalStateException e) {
                 String msg = e.getMessage();
-                if ("DISABLED".equals(msg)) CommandUtils.msg(sender, "&c小切手機能は無効です。");
-                else if ("FROZEN".equals(msg)) CommandUtils.msg(sender, "&cアカウントが凍結されています。");
-                else if ("INSUFFICIENT".equals(msg)) CommandUtils.msg(sender, "&c残高が不足しています。");
-                else CommandUtils.msg(sender, "&c発行に失敗しました: " + msg);
+                switch (msg) {
+                    case "DISABLED" -> CommandUtils.msg(sender, "&c小切手機能は無効です。");
+                    case "FROZEN" -> CommandUtils.msg(sender, "&cアカウントが凍結されています。");
+                    case "INSUFFICIENT" -> CommandUtils.msg(sender, "&c残高が不足しています。");
+                    case null, default -> CommandUtils.msg(sender, "&c発行に失敗しました: " + msg);
+                }
             } catch (SQLException e) {
                 logger.warning("[ChequeCommand] issue failed: " + e.getMessage());
                 CommandUtils.msg(sender, "&cDBエラーが発生しました。");

@@ -209,7 +209,6 @@ public class LoanCommand implements CommandExecutor, TabCompleter {
                 if (row == null || (row.principal() <= 0 && row.interestDebt() <= 0)) {
                     CommandUtils.msg(sender, "&7[サーバーローン] 現在借入はありません。");
                 } else {
-                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
                     CommandUtils.msg(sender, "&8&m----&r &6サーバーローン状況 &8&m----");
                     CommandUtils.msg(sender, " &7元本: &f" + config.format(row.principal()));
                     CommandUtils.msg(sender, " &7利息未払: &f" + config.format(row.interestDebt()));

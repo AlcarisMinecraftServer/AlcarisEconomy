@@ -314,7 +314,7 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
-    private boolean cmdReload(CommandSender sender, String[] args) {
+    private boolean cmdReload(CommandSender sender, String[] ignoredArgs) {
         if (CommandUtils.checkPermission(sender, "alcariseconomy.money.reload")) return true;
         plugin.reloadConfig();
         CommandUtils.msg(sender, MessageConfig.RELOADED);
