@@ -73,16 +73,29 @@ public class AdminCommand implements CommandExecutor, TabCompleter {
     }
 
     public List<String> tabComplete(CommandSender sender, String[] args) {
-        if (args.length == 1) return Arrays.asList("freeze", "unfreeze", "check", "pool",
-                "set", "give", "take", "cheque", "txlog", "loan");
+        if (!sender.hasPermission("alcariseconomy.admin")) return List.of();
+        String partial = args[args.length - 1];
+        if (args.length == 1)
+            return CommandUtils.filter(Arrays.asList("freeze", "unfreeze", "check", "pool",
+                    "set", "give", "take", "cheque", "txlog", "loan"), partial);
         if (args.length == 2) {
             String sub = args[0].toLowerCase();
-            if (Arrays.asList("freeze", "unfreeze", "check", "set", "give", "take", "txlog").contains(sub)) return null;
-            if (sub.equals("cheque")) return Arrays.asList("info", "void");
-            if (sub.equals("loan")) return Arrays.asList("info", "forgive", "setstage", "void");
+            if (Arrays.asList("freeze", "unfreeze", "check", "set", "give", "take", "txlog").contains(sub))
+                return filterOnlinePlayers(partial);
+            if (sub.equals("cheque")) return CommandUtils.filter(Arrays.asList("info", "void"), partial);
+            if (sub.equals("loan"))   return CommandUtils.filter(Arrays.asList("info", "forgive", "setstage", "void"), partial);
         }
-        if (args.length == 3 && args[0].equalsIgnoreCase("loan") && args[1].equalsIgnoreCase("setstage")) return null;
+        if (args.length == 3 && args[0].equalsIgnoreCase("loan") && args[1].equalsIgnoreCase("setstage"))
+            return CommandUtils.filter(Arrays.asList("NORMAL", "OVERDUE_1", "OVERDUE_2"), partial);
         return List.of();
+    }
+
+    private static List<String> filterOnlinePlayers(String partial) {
+        String lower = partial.toLowerCase();
+        return org.bukkit.Bukkit.getOnlinePlayers().stream()
+                .map(p -> p.getName())
+                .filter(n -> n.toLowerCase().startsWith(lower))
+                .collect(java.util.stream.Collectors.toList());
     }
 
     private boolean cmdFreeze(CommandSender sender, String[] args) {
@@ -134,7 +147,11 @@ public class AdminCommand implements CommandExecutor, TabCompleter {
                 CommandUtils.msg(sender, MessageConfig.format(MessageConfig.ACCOUNT_INFO_HEADER, "player", targetName));
                 CommandUtils.msg(sender, " &7UUID: &f" + target.getUniqueId());
                 CommandUtils.msg(sender, MessageConfig.format(MessageConfig.ACCOUNT_INFO_BALANCE, "balance", config.format(balance)));
-                CommandUtils.msg(sender, MessageConfig.format(MessageConfig.ACCOUNT_INFO_FROZEN, "frozen", frozen ? "&cはい" : "&aいいえ"));
+                FreezeManager.FreezeReason reason = frozen ? plugin.getFreezeManager().getPublicFreezeReason(target.getUniqueId()) : null;
+                String statusStr = !frozen ? "&a通常"
+                        : reason == FreezeManager.FreezeReason.LOAN_OVERDUE ? "&c凍結 &7(ローン延滞)"
+                        : "&c凍結 &7(非活性)";
+                CommandUtils.msg(sender, MessageConfig.format(MessageConfig.ACCOUNT_INFO_FROZEN, "frozen", statusStr));
                 CommandUtils.msg(sender, MessageConfig.format(MessageConfig.ACCOUNT_INFO_LAST_TXN, "time", timeStr));
             } catch (SQLException e) { logger.warning("[AdminCommand] check failed: " + e.getMessage()); }
         });
@@ -253,7 +270,7 @@ public class AdminCommand implements CommandExecutor, TabCompleter {
                 for (TxLogRepository.TxLogEntry e : entries) {
                     String dir = e.fromUuid() != null && e.fromUuid().equals(target.getUniqueId()) ? "&c-" : "&a+";
                     CommandUtils.msg(sender, "&7" + sdf.format(new Date(e.createdAt())) + " "
-                            + dir + config.format(e.amount()) + " &8[" + e.type() + "]");
+                            + dir + config.format(e.amount()) + " &8[" + CommandUtils.formatTransferType(e.type()) + "]");
                 }
             } catch (SQLException e) { logger.warning("[AdminCommand] txlog failed: " + e.getMessage()); }
         });
@@ -306,8 +323,8 @@ public class AdminCommand implements CommandExecutor, TabCompleter {
                     } else {
                         CommandUtils.msg(sender, " &7元本: &f" + config.format(row.principal()));
                         CommandUtils.msg(sender, " &7利息未払: &f" + config.format(row.interestDebt()));
-                        CommandUtils.msg(sender, " &7ステージ: &f" + row.stage());
-                        CommandUtils.msg(sender, " &7延滞日数: &f" + row.overdueDays());
+                        CommandUtils.msg(sender, " &7ステージ: " + CommandUtils.formatLoanStage(row.stage()));
+                        CommandUtils.msg(sender, " &7延滞日数: &f" + row.overdueDays() + " 日");
                     }
                 } catch (SQLException e) { logger.warning("[AdminCommand] loan info failed: " + e.getMessage()); }
             });

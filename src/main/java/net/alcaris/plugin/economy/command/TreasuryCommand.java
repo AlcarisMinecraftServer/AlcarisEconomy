@@ -189,7 +189,10 @@ public class TreasuryCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, String[] args) {
-        if (args.length == 1) return Arrays.asList("list", "show", "deposit", "withdraw", "log", "transfer");
+        if (!sender.hasPermission("alcariseconomy.treasury")) return List.of();
+        String partial = args[args.length - 1];
+        if (args.length == 1)
+            return CommandUtils.filter(Arrays.asList("list", "show", "deposit", "withdraw", "log", "transfer"), partial);
         return List.of();
     }
 

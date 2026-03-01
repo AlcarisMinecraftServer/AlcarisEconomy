@@ -95,10 +95,10 @@ public class TxLogCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command,
                                       @NotNull String alias, @NotNull String[] args) {
-        if (args.length == 1) {
-            return Arrays.asList("REMOTE_PAY", "ATM_TRANSFER", "INTEREST", "CHEQUE_ISSUE",
-                    "CHEQUE_USE", "LOAN_BORROW", "LOAN_REPAY", "CRYPTO");
-        }
+        if (args.length == 1)
+            return CommandUtils.filter(Arrays.asList(
+                    "REMOTE_PAY", "ATM_TRANSFER", "INTEREST", "CHEQUE_ISSUE",
+                    "CHEQUE_USE", "LOAN_BORROW", "LOAN_REPAY", "CRYPTO"), args[0]);
         return List.of();
     }
 }

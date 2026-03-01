@@ -16,6 +16,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -127,6 +128,14 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
         double amount = CommandUtils.parsePositiveDouble(args[2]);
         if (amount < 0) { CommandUtils.msg(sender, MessageConfig.INVALID_AMOUNT); return true; }
         long internal = CommandUtils.toInternal(amount);
+
+        long estimatedFee = transferManager.calculateFee(internal, TransferManager.TransferType.REMOTE_PAY);
+        if (estimatedFee >= internal) {
+            CommandUtils.msg(sender, MessageConfig.format(MessageConfig.PAY_FEE_TOO_HIGH,
+                    "fee", config.format(estimatedFee), "amount", config.format(internal)));
+            return true;
+        }
+
         UUID fromUUID = player.getUniqueId();
         UUID toUUID = target.getUniqueId();
         String targetName = CommandUtils.displayName(target);
@@ -330,16 +339,38 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, String alias, @NotNull String[] args) {
         if (alias.equalsIgnoreCase("pay")) {
-            if (args.length == 1) return null;
+            if (args.length == 1) return filterOnlinePlayers(args[0]);
             return List.of();
         }
+
+        String partial = args[args.length - 1];
+
         if (args.length == 1) {
-            return Arrays.asList("show", "pay", "set", "give", "take", "create", "remove", "top", "reload", "help");
+            List<String> subs = new ArrayList<>(Arrays.asList("show", "pay", "top", "help"));
+            if (sender.hasPermission("alcariseconomy.money.set"))    subs.add("set");
+            if (sender.hasPermission("alcariseconomy.money.give"))   subs.add("give");
+            if (sender.hasPermission("alcariseconomy.money.take"))   subs.add("take");
+            if (sender.hasPermission("alcariseconomy.money.create")) subs.add("create");
+            if (sender.hasPermission("alcariseconomy.money.remove")) subs.add("remove");
+            if (sender.hasPermission("alcariseconomy.money.reload")) subs.add("reload");
+            return CommandUtils.filter(subs, partial);
         }
-        if (args.length == 2 && Arrays.asList("pay", "set", "give", "take", "create", "remove", "show").contains(args[0].toLowerCase())) {
-            return null;
+        if (args.length == 2) {
+            String sub = args[0].toLowerCase();
+            if (Arrays.asList("pay", "set", "give", "take", "create", "remove").contains(sub))
+                return filterOnlinePlayers(partial);
+            if (sub.equals("show") && sender.hasPermission("alcariseconomy.money.others"))
+                return filterOnlinePlayers(partial);
         }
         return List.of();
+    }
+
+    private static List<String> filterOnlinePlayers(String partial) {
+        String lower = partial.toLowerCase();
+        return Bukkit.getOnlinePlayers().stream()
+                .map(Player::getName)
+                .filter(n -> n.toLowerCase().startsWith(lower))
+                .collect(java.util.stream.Collectors.toList());
     }
 
     private void handleTransferFailure(CommandSender sender, String reason, long amount) {

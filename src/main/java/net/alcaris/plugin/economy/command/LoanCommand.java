@@ -16,8 +16,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -303,12 +303,31 @@ public class LoanCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command,
                                       @NotNull String alias, @NotNull String[] args) {
+        if (!sender.hasPermission("alcariseconomy.loan")) return List.of();
+        String partial = args[args.length - 1];
+
         if (args.length == 1) {
-            return Arrays.asList("offer", "accept", "deny", "cancel", "repay", "borrow", "status", "autopay");
+            List<String> subs = new ArrayList<>();
+            if (playerLoanService != null) subs.addAll(Arrays.asList("offer", "accept", "deny", "cancel"));
+            if (playerLoanService != null || serverLoanService != null) subs.add("repay");
+            if (serverLoanService != null) subs.addAll(Arrays.asList("borrow", "status", "autopay"));
+            return CommandUtils.filter(subs, partial);
         }
-        if (args.length == 2 && Arrays.asList("offer", "accept", "deny", "cancel").contains(args[0].toLowerCase())) {
-            return null;
+        if (args.length == 2) {
+            String sub = args[0].toLowerCase();
+            if (sub.equals("offer")) return filterOnlinePlayers(partial);
+            if (Arrays.asList("accept", "deny", "cancel", "repay").contains(sub))
+                return List.of();
+            if (sub.equals("autopay")) return CommandUtils.filter(List.of("off"), partial);
         }
         return List.of();
+    }
+
+    private static List<String> filterOnlinePlayers(String partial) {
+        String lower = partial.toLowerCase();
+        return Bukkit.getOnlinePlayers().stream()
+                .map(Player::getName)
+                .filter(n -> n.toLowerCase().startsWith(lower))
+                .collect(java.util.stream.Collectors.toList());
     }
 }

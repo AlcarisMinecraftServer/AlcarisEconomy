@@ -69,9 +69,19 @@ public class BankCommand implements CommandExecutor, TabCompleter {
                 long lastTxn = repository.getLastTxnAt(player.getUniqueId());
                 String timeStr = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm").format(new java.util.Date(lastTxn));
 
+                String statusStr;
+                if (frozen) {
+                    FreezeManager.FreezeReason reason = freezeManager.getPublicFreezeReason(player.getUniqueId());
+                    statusStr = reason == FreezeManager.FreezeReason.LOAN_OVERDUE
+                            ? "&c凍結 &7(ローン延滞)"
+                            : "&c凍結 &7(非活性)";
+                } else {
+                    statusStr = "&a通常";
+                }
+
                 CommandUtils.msg(sender, MessageConfig.format(MessageConfig.ACCOUNT_INFO_HEADER, "player", player.getName()));
                 CommandUtils.msg(sender, MessageConfig.format(MessageConfig.ACCOUNT_INFO_BALANCE, "balance", config.format(balance)));
-                CommandUtils.msg(sender, MessageConfig.format(MessageConfig.ACCOUNT_INFO_FROZEN, "frozen", frozen ? "&cYes" : "&aNo"));
+                CommandUtils.msg(sender, MessageConfig.format(MessageConfig.ACCOUNT_INFO_FROZEN, "frozen", statusStr));
                 CommandUtils.msg(sender, MessageConfig.format(MessageConfig.ACCOUNT_INFO_LAST_TXN, "time", timeStr));
             } catch (SQLException e) { logger.warning("[BankCommand] show failed: " + e.getMessage()); }
         });
@@ -189,7 +199,17 @@ public class BankCommand implements CommandExecutor, TabCompleter {
                         "player", targetName,
                         "fee", config.format(result.fee())));
             } else {
-                CommandUtils.msg(sender, "&c送金に失敗しました: " + result.failReason());
+                String reason = result.failReason();
+                if ("SENDER_FROZEN".equals(reason)) {
+                    CommandUtils.msg(sender, MessageConfig.SENDER_FROZEN);
+                } else if (reason != null && reason.startsWith("RECEIVER_FROZEN")) {
+                    CommandUtils.msg(sender, MessageConfig.format(MessageConfig.RECEIVER_FROZEN, "player", targetName));
+                } else if (reason != null && reason.startsWith("INSUFFICIENT")) {
+                    CommandUtils.msg(sender, MessageConfig.format(MessageConfig.INSUFFICIENT_FUNDS,
+                            "amount", config.format(internal), "balance", "?"));
+                } else {
+                    CommandUtils.msg(sender, "&c送金に失敗しました。");
+                }
             }
         });
         return true;
@@ -229,9 +249,20 @@ public class BankCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, String[] args) {
-        if (args.length == 1) return Arrays.asList("show", "deposit", "withdraw", "transfer", "unfreeze");
-        if (args.length == 2 && args[0].equalsIgnoreCase("transfer")) return null;
+        String partial = args[args.length - 1];
+        if (args.length == 1)
+            return CommandUtils.filter(Arrays.asList("show", "deposit", "withdraw", "transfer", "unfreeze"), partial);
+        if (args.length == 2 && args[0].equalsIgnoreCase("transfer"))
+            return filterOnlinePlayers(partial);
         return List.of();
+    }
+
+    private static List<String> filterOnlinePlayers(String partial) {
+        String lower = partial.toLowerCase();
+        return org.bukkit.Bukkit.getOnlinePlayers().stream()
+                .map(p -> p.getName())
+                .filter(n -> n.toLowerCase().startsWith(lower))
+                .collect(java.util.stream.Collectors.toList());
     }
 
     private int estimateItemCount(long internal) {

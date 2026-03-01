@@ -68,9 +68,11 @@ public final class MessageConfig {
     public static final String TOP_ENTRY  = "&e{rank}. &f{player}&8: &a{balance}";
     public static final String TOP_EMPTY  = PREFIX + "&cアカウントが見つかりません。";
 
+    public static final String PAY_FEE_TOO_HIGH = PREFIX + "&c手数料（&e{fee}&c）が送金額（&e{amount}&c）以上のため送金できません。送金額を増やしてください。";
+
     public static final String ACCOUNT_INFO_HEADER   = "&8&m----&r &6アカウント情報: &e{player} &8&m----";
     public static final String ACCOUNT_INFO_BALANCE  = " &7残高: &a{balance}";
-    public static final String ACCOUNT_INFO_FROZEN   = " &7凍結状態: {frozen}";
+    public static final String ACCOUNT_INFO_FROZEN   = " &7状態: {frozen}";
     public static final String ACCOUNT_INFO_LAST_TXN = " &7最終取引: &f{time}";
 
     public static String format(String message, String... replacements) {

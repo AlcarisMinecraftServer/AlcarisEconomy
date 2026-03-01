@@ -238,13 +238,25 @@ public class CryptoCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, String[] args) {
-        if (args.length == 1) return Arrays.asList("list", "buy", "sell", "portfolio", "history", "admin");
-        if (args.length == 2 && (args[0].equalsIgnoreCase("buy") || args[0].equalsIgnoreCase("sell") || args[0].equalsIgnoreCase("history"))) {
-            return market.getAllAssets().stream().map(CryptoAsset::getSymbol).collect(Collectors.toList());
+        String partial = args[args.length - 1];
+
+        if (args.length == 1) {
+            List<String> subs = new java.util.ArrayList<>(Arrays.asList("list", "buy", "sell", "portfolio", "history"));
+            if (sender.hasPermission("alcariseconomy.crypto.admin")) subs.add("admin");
+            return CommandUtils.filter(subs, partial);
         }
-        if (args.length == 2 && args[0].equalsIgnoreCase("admin")) return Arrays.asList("rate", "event");
-        if (args.length == 3 && args[0].equalsIgnoreCase("admin")) {
-            return market.getAllAssets().stream().map(CryptoAsset::getSymbol).collect(Collectors.toList());
+        if (args.length == 2) {
+            String sub = args[0].toLowerCase();
+            if (sub.equals("buy") || sub.equals("sell") || sub.equals("history")) {
+                return CommandUtils.filter(
+                        market.getAllAssets().stream().map(CryptoAsset::getSymbol).collect(Collectors.toList()), partial);
+            }
+            if (sub.equals("admin") && sender.hasPermission("alcariseconomy.crypto.admin"))
+                return CommandUtils.filter(Arrays.asList("rate", "event"), partial);
+        }
+        if (args.length == 3 && args[0].equalsIgnoreCase("admin") && sender.hasPermission("alcariseconomy.crypto.admin")) {
+            return CommandUtils.filter(
+                    market.getAllAssets().stream().map(CryptoAsset::getSymbol).collect(Collectors.toList()), partial);
         }
         return List.of();
     }

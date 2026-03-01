@@ -8,9 +8,49 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 public final class CommandUtils {
 
     private CommandUtils() {}
+
+    public static List<String> filter(List<String> options, String partial) {
+        if (partial == null || partial.isEmpty()) return new ArrayList<>(options);
+        String lower = partial.toLowerCase();
+        return options.stream()
+                .filter(s -> s.toLowerCase().startsWith(lower))
+                .collect(Collectors.toList());
+    }
+
+    public static String formatTransferType(String type) {
+        if (type == null) return "不明";
+        return switch (type) {
+            case "REMOTE_PAY"        -> "送金";
+            case "ATM_TRANSFER"      -> "ATM振込";
+            case "INTEREST"          -> "利息";
+            case "FREEZE_FEE"        -> "凍結解除";
+            case "CRYPTO"            -> "仮想通貨";
+            case "TREASURY_WITHDRAW" -> "国庫出金";
+            case "CHEQUE_ISSUE"      -> "小切手発行";
+            case "CHEQUE_USE"        -> "小切手換金";
+            case "LOAN_BORROW"       -> "ローン借入";
+            case "LOAN_REPAY"        -> "ローン返済";
+            case "LOAN_INTEREST"     -> "ローン利息";
+            default -> type;
+        };
+    }
+
+    public static String formatLoanStage(String stage) {
+        if (stage == null) return "不明";
+        return switch (stage) {
+            case "NORMAL"    -> "&a通常";
+            case "OVERDUE_1" -> "&e延滞（段階1 - 口座凍結）";
+            case "OVERDUE_2" -> "&c延滞（段階2 - 高利率）";
+            default -> stage;
+        };
+    }
 
     public static double parsePositiveDouble(String s) {
         try {

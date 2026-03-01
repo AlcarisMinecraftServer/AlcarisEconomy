@@ -147,7 +147,9 @@ public class ChequeCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command,
                                       @NotNull String alias, @NotNull String[] args) {
-        if (args.length == 1) return Arrays.asList("issue", "list");
+        if (!sender.hasPermission("alcariseconomy.cheque")) return List.of();
+        if (args.length == 1)
+            return CommandUtils.filter(Arrays.asList("issue", "list"), args[0]);
         return List.of();
     }
 }

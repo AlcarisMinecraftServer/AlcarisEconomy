@@ -1,6 +1,5 @@
 package net.alcaris.plugin.economy.command;
 
-import net.alcaris.plugin.economy.AlcarisEconomy;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -33,7 +32,10 @@ public class EconomyCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command,
                                       @NotNull String alias, @NotNull String[] args) {
-        if (args.length == 1) return List.of("admin");
+        if (args.length == 1)
+            return sender.hasPermission("alcariseconomy.admin")
+                    ? CommandUtils.filter(List.of("admin"), args[0])
+                    : List.of();
         if (args.length >= 2 && args[0].equalsIgnoreCase("admin")) {
             String[] subArgs = Arrays.copyOfRange(args, 1, args.length);
             return adminCommand.tabComplete(sender, subArgs);

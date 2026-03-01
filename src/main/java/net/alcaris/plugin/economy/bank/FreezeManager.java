@@ -168,6 +168,15 @@ public class FreezeManager {
         }
     }
 
+    public FreezeReason getPublicFreezeReason(UUID uuid) {
+        try {
+            return getFreezeReason(uuid);
+        } catch (SQLException e) {
+            logger.warning("[FreezeManager] getPublicFreezeReason failed for " + uuid + ": " + e.getMessage());
+            return null;
+        }
+    }
+
     private FreezeReason getFreezeReason(UUID uuid) throws SQLException {
         try (Connection conn = dbManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(
