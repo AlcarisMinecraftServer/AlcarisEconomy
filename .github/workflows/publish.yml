@@ -1,11 +1,6 @@
 name: Publish
 
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: "Build version (e.g. v1.0.0)"
-        required: true
   push:
     tags:
       - 'v*.*.*'

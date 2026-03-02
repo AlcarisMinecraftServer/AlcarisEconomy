@@ -1,0 +1,19 @@
+name: Deploy
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  deploy:
+    uses: AlcarisMinecraftServer/.github/.github/workflows/deploy.yml@main
+    with:
+      jar_name: "AlcarisChat-Paper-*.jar"
+      plugin_name: "AlcarisChat-Paper"
+      server_ids: "e43db1de, be1dfdf2, 9cc6a6bc"
+    secrets:
+      PUFFERPANEL_URL: ${{ secrets.PUFFERPANEL_URL }}
+      PUFFERPANEL_CLIENT_ID: ${{ secrets.PUFFERPANEL_CLIENT_ID }}
+      PUFFERPANEL_CLIENT_SECRET: ${{ secrets.PUFFERPANEL_CLIENT_SECRET }}
+      DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
