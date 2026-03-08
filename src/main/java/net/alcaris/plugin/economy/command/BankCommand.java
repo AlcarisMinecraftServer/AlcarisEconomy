@@ -6,6 +6,7 @@ import net.alcaris.plugin.economy.bank.TransferManager;
 import net.alcaris.plugin.economy.config.EconomyConfig;
 import net.alcaris.plugin.economy.config.MessageConfig;
 import net.alcaris.plugin.economy.currency.CashItem;
+import net.alcaris.plugin.economy.gui.BankMainUI;
 import net.alcaris.plugin.economy.repository.BalanceRepository;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -45,7 +46,12 @@ public class BankCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
-        if (args.length == 0) return showHelp(sender);
+        if (args.length == 0) {
+            Player player = CommandUtils.requirePlayer(sender);
+            if (player == null) return true;
+            BankMainUI.openAsync(plugin, player);
+            return true;
+        }
         return switch (args[0].toLowerCase()) {
             case "show"     -> cmdShow(sender);
             case "deposit"  -> cmdDeposit(sender);

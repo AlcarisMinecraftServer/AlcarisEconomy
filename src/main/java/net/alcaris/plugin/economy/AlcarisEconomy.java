@@ -39,12 +39,14 @@ import net.alcaris.plugin.economy.repository.ChequeRepository;
 import net.alcaris.plugin.economy.repository.LazyRepository;
 import net.alcaris.plugin.economy.repository.SyncRepository;
 import net.alcaris.plugin.economy.repository.TxLogRepository;
+import net.alcaris.plugin.economy.gui.BankUIService;
 import net.alcaris.plugin.economy.util.BalanceProviderRegistry;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.sql.SQLException;
+import java.util.Objects;
 
 public final class AlcarisEconomy extends JavaPlugin {
 
@@ -145,45 +147,45 @@ public final class AlcarisEconomy extends JavaPlugin {
             registerBalanceProviders();
 
             MoneyCommand moneyCommand = new MoneyCommand(this);
-            getCommand("money").setExecutor(moneyCommand);
-            getCommand("money").setTabCompleter(moneyCommand);
-            getCommand("pay").setExecutor(moneyCommand);
-            getCommand("pay").setTabCompleter(moneyCommand);
+            Objects.requireNonNull(getCommand("money")).setExecutor(moneyCommand);
+            Objects.requireNonNull(getCommand("money")).setTabCompleter(moneyCommand);
+            Objects.requireNonNull(getCommand("pay")).setExecutor(moneyCommand);
+            Objects.requireNonNull(getCommand("pay")).setTabCompleter(moneyCommand);
 
             BankCommand bankCommand = new BankCommand(this);
-            getCommand("bank").setExecutor(bankCommand);
-            getCommand("bank").setTabCompleter(bankCommand);
+            Objects.requireNonNull(getCommand("bank")).setExecutor(bankCommand);
+            Objects.requireNonNull(getCommand("bank")).setTabCompleter(bankCommand);
 
             this.adminCommand = new AdminCommand(this);
             EconomyCommand economyCommand = new EconomyCommand(adminCommand);
-            getCommand("economy").setExecutor(economyCommand);
-            getCommand("economy").setTabCompleter(economyCommand);
+            Objects.requireNonNull(getCommand("economy")).setExecutor(economyCommand);
+            Objects.requireNonNull(getCommand("economy")).setTabCompleter(economyCommand);
 
             TreasuryCommand treasuryCommand = new TreasuryCommand(this);
-            getCommand("treasury").setExecutor(treasuryCommand);
-            getCommand("treasury").setTabCompleter(treasuryCommand);
+            Objects.requireNonNull(getCommand("treasury")).setExecutor(treasuryCommand);
+            Objects.requireNonNull(getCommand("treasury")).setTabCompleter(treasuryCommand);
 
             if (economyConfig.isCryptoEnabled()) {
                 CryptoCommand cryptoCommand = new CryptoCommand(this);
-                getCommand("crypto").setExecutor(cryptoCommand);
-                getCommand("crypto").setTabCompleter(cryptoCommand);
+                Objects.requireNonNull(getCommand("crypto")).setExecutor(cryptoCommand);
+                Objects.requireNonNull(getCommand("crypto")).setTabCompleter(cryptoCommand);
             }
 
             if (economyConfig.isChequeEnabled()) {
                 ChequeCommand chequeCommand = new ChequeCommand(this, chequeService, chequeRepository);
-                getCommand("cheque").setExecutor(chequeCommand);
-                getCommand("cheque").setTabCompleter(chequeCommand);
+                Objects.requireNonNull(getCommand("cheque")).setExecutor(chequeCommand);
+                Objects.requireNonNull(getCommand("cheque")).setTabCompleter(chequeCommand);
                 getServer().getPluginManager().registerEvents(new ChequeListener(this, chequeService), this);
             }
 
             TxLogCommand txLogCommand = new TxLogCommand(this, txLogRepository);
-            getCommand("txlog").setExecutor(txLogCommand);
-            getCommand("txlog").setTabCompleter(txLogCommand);
+            Objects.requireNonNull(getCommand("txlog")).setExecutor(txLogCommand);
+            Objects.requireNonNull(getCommand("txlog")).setTabCompleter(txLogCommand);
 
             if (economyConfig.isLoanPlayerEnabled() || economyConfig.isLoanServerEnabled()) {
                 LoanCommand loanCommand = new LoanCommand(this, playerLoanService, serverLoanService);
-                getCommand("loan").setExecutor(loanCommand);
-                getCommand("loan").setTabCompleter(loanCommand);
+                Objects.requireNonNull(getCommand("loan")).setExecutor(loanCommand);
+                Objects.requireNonNull(getCommand("loan")).setTabCompleter(loanCommand);
                 CollateralUI collateralUI = new CollateralUI(this, collateralManager);
                 getServer().getPluginManager().registerEvents(collateralUI, this);
                 if (economyConfig.isLoanPlayerEnabled()) {
@@ -194,6 +196,7 @@ public final class AlcarisEconomy extends JavaPlugin {
 
             getServer().getPluginManager().registerEvents(new EventListener(this), this);
             getServer().getPluginManager().registerEvents(new CashItemListener(this), this);
+            getServer().getPluginManager().registerEvents(new BankUIService(), this);
 
             freezeManager.startScheduler();
             freezeManager.runStartupCheck();
