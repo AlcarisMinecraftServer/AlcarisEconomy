@@ -3,6 +3,7 @@ package net.alcaris.plugin.economy.gui;
 import net.alcaris.plugin.economy.AlcarisEconomy;
 import net.alcaris.plugin.economy.config.EconomyConfig;
 import net.alcaris.plugin.economy.currency.CashItem;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -30,6 +31,11 @@ public class BankDepositUI extends AbstractBankUI {
         this.accountBalance = accountBalance;
         buildLayout();
         updateHeader();
+    }
+
+    @Override
+    protected Component createTitle(String baseTitle) {
+        return GuiTextures.createBankTitle("入金");
     }
 
     public static void openAsync(AlcarisEconomy plugin, Player player) {

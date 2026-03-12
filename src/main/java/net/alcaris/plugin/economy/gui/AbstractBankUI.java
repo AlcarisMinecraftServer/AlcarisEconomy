@@ -2,6 +2,7 @@ package net.alcaris.plugin.economy.gui;
 
 import net.alcaris.plugin.economy.AlcarisEconomy;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -27,8 +28,19 @@ public abstract class AbstractBankUI implements InventoryHolder {
 
     protected AbstractBankUI(AlcarisEconomy plugin, String title, int rows, AbstractBankUI previousUI) {
         this.plugin = plugin;
-        this.inventory = Bukkit.createInventory(this, rows * 9, Component.text(title));
+        this.inventory = Bukkit.createInventory(this, rows * 9, createTitle(title));
         this.previousUI = previousUI;
+    }
+
+    /**
+     * Template method for creating GUI titles. Subclasses can override to provide custom styling.
+     * Default implementation maintains backward compatibility with simple text titles.
+     *
+     * @param baseTitle The base title text
+     * @return Component representing the GUI title
+     */
+    protected Component createTitle(String baseTitle) {
+        return Component.text(baseTitle);  // Default implementation - backward compatibility
     }
 
     protected void setButton(int slot, ItemStack icon, Runnable action) {
@@ -50,7 +62,9 @@ public abstract class AbstractBankUI implements InventoryHolder {
     }
 
     protected static Component c(String legacy) {
-        return LegacyComponentSerializer.legacyAmpersand().deserialize(legacy);
+        return Component.empty()
+                .decoration(TextDecoration.ITALIC, false)
+                .append(LegacyComponentSerializer.legacyAmpersand().deserialize(legacy));
     }
 
     protected static ItemStack item(Material mat, String name) {

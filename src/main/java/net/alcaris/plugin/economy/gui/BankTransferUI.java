@@ -3,6 +3,7 @@ package net.alcaris.plugin.economy.gui;
 import net.alcaris.plugin.economy.AlcarisEconomy;
 import net.alcaris.plugin.economy.bank.TransferManager;
 import net.alcaris.plugin.economy.config.EconomyConfig;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -36,6 +37,11 @@ public class BankTransferUI extends AbstractBankUI {
         this.numpad = new BankNumpadHelper(maxYen);
         buildLayout();
         updateHeader();
+    }
+
+    @Override
+    protected Component createTitle(String baseTitle) {
+        return GuiTextures.createBankTitle("振込");
     }
 
     public static void openAsync(AlcarisEconomy plugin, Player player, OfflinePlayer target) {

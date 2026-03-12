@@ -5,6 +5,7 @@ import net.alcaris.plugin.economy.bank.FreezeManager;
 import net.alcaris.plugin.economy.config.EconomyConfig;
 import net.alcaris.plugin.economy.config.MessageConfig;
 import net.alcaris.plugin.economy.repository.TxLogRepository;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -58,6 +59,11 @@ public class BankMainUI extends AbstractBankUI {
         buildLayout();
     }
 
+    @Override
+    protected Component createTitle(String baseTitle) {
+        return GuiTextures.createBankTitle("銀行メニュー");
+    }
+
     public static void openAsync(AlcarisEconomy plugin, Player player) {
         UUID uuid = player.getUniqueId();
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
@@ -97,7 +103,6 @@ public class BankMainUI extends AbstractBankUI {
         });
     }
 
-    @SuppressWarnings("deprecation")
     private static void cachePlayerName(UUID uuid, Map<UUID, String> cache) {
         if (uuid == null || cache.containsKey(uuid)) return;
         OfflinePlayer op = Bukkit.getOfflinePlayer(uuid);
@@ -105,28 +110,23 @@ public class BankMainUI extends AbstractBankUI {
     }
 
     private void buildLayout() {
-        for (int i = 0; i < 9; i++) setButton(i, makeFiller(Material.BLACK_STAINED_GLASS_PANE));
 
-        setButton(9,  item(Material.CYAN_STAINED_GLASS_PANE,  "&b&l出金"),  this::openWithdraw);
-        setButton(11, item(Material.LIME_STAINED_GLASS_PANE,  "&a&l入金"),  this::openDeposit);
-        setButton(13, item(Material.ORANGE_STAINED_GLASS_PANE, "&6&l振込"), this::openTransfer);
+        setButton(10,  item(Material.CYAN_STAINED_GLASS_PANE,  "&b&l出金"),  this::openWithdraw);
+        setButton(12, item(Material.LIME_STAINED_GLASS_PANE,  "&a&l入金"),  this::openDeposit);
+        setButton(14, item(Material.ORANGE_STAINED_GLASS_PANE, "&6&l振込"), this::openTransfer);
         buildFreezeButton();
-        for (int s : new int[]{10, 12, 14, 16, 17}) setButton(s, makeFiller(Material.BLACK_STAINED_GLASS_PANE));
-
-        for (int i = 18; i < 27; i++) setButton(i, makeFiller(Material.BLACK_STAINED_GLASS_PANE));
 
         buildAccountInfoButton();
         setButton(31, item(Material.RED_STAINED_GLASS_PANE, "&c&l閉じる"), player::closeInventory);
         buildTxLogButton();
-        for (int s : new int[]{27, 28, 29, 33, 34, 35}) setButton(s, makeFiller(Material.BLACK_STAINED_GLASS_PANE));
     }
 
     private void buildFreezeButton() {
         if (frozen) {
-            setButton(15, item(Material.RED_STAINED_GLASS_PANE, "&c&l凍結解除",
+            setButton(16, item(Material.RED_STAINED_GLASS_PANE, "&c&l凍結解除",
                     List.of("&7クリックで凍結を解除します")), this::doUnfreeze);
         } else {
-            setButton(15, item(Material.GRAY_STAINED_GLASS_PANE, "&7凍結解除",
+            setButton(16, item(Material.GRAY_STAINED_GLASS_PANE, "&7凍結解除",
                     List.of("&7口座は凍結されていません")));
         }
     }
@@ -210,7 +210,7 @@ public class BankMainUI extends AbstractBankUI {
 
     private void openTransfer() {
         player.closeInventory();
-        player.sendMessage(c("&7振込先のプレイヤー名を入力してください &8(30秒でキャンセル)"));
+        player.sendMessage(c("振込先のプレイヤー名を入力してください &8(cancelと入力することでキャンセルできます)"));
         registerTransferListener();
     }
 
@@ -226,6 +226,10 @@ public class BankMainUI extends AbstractBankUI {
                 event.setCancelled(true);
                 HandlerList.unregisterAll(ref[0]);
                 String name = event.getMessage().trim();
+                if (name.equalsIgnoreCase("cancel")) {
+                    player.sendMessage(c("&c振込入力がキャンセルされました。"));
+                    return;
+                }
                 Bukkit.getScheduler().runTask(plugin, () -> resolveAndOpenTransfer(name));
             }
         };
@@ -239,7 +243,6 @@ public class BankMainUI extends AbstractBankUI {
         }, 20L * 30);
     }
 
-    @SuppressWarnings("deprecation")
     private void resolveAndOpenTransfer(String name) {
         OfflinePlayer target = Bukkit.getPlayerExact(name);
         if (target == null) target = Bukkit.getOfflinePlayer(name);

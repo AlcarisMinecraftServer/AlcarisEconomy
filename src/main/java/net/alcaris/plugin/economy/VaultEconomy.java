@@ -10,7 +10,6 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.logging.Logger;
 
-@SuppressWarnings("deprecation")
 public class VaultEconomy implements Economy {
 
     private final AlcarisEconomy plugin;
