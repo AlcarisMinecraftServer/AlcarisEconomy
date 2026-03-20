@@ -13,6 +13,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.List;
@@ -99,6 +100,7 @@ public abstract class AbstractBankUI implements InventoryHolder {
         }
     }
 
+    @NotNull
     @Override
     public Inventory getInventory() { return inventory; }
 }

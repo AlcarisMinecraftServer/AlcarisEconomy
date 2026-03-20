@@ -152,7 +152,7 @@ public class BankDepositUI extends AbstractBankUI {
         if (rawSlot >= inventory.getSize()) {
             if (event.isShiftClick()) {
                 ItemStack current = event.getCurrentItem();
-                if (current != null && CashItem.hasCashMarker(current)) {
+                if (CashItem.hasCashMarker(current)) {
                     Bukkit.getScheduler().runTask(plugin, this::updateHeader);
                 } else {
                     event.setCancelled(true);
@@ -178,7 +178,7 @@ public class BankDepositUI extends AbstractBankUI {
             default -> {}
         }
         ItemStack cursor = event.getCursor();
-        if (cursor != null && cursor.getType() != Material.AIR && !CashItem.hasCashMarker(cursor)) {
+        if (cursor.getType() != Material.AIR && !CashItem.hasCashMarker(cursor)) {
             event.setCancelled(true);
             return;
         }
