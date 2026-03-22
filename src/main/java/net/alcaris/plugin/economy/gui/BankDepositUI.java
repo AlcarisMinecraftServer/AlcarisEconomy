@@ -3,7 +3,6 @@ package net.alcaris.plugin.economy.gui;
 import net.alcaris.plugin.economy.AlcarisEconomy;
 import net.alcaris.plugin.economy.config.EconomyConfig;
 import net.alcaris.plugin.economy.currency.CashItem;
-import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -33,10 +32,6 @@ public class BankDepositUI extends AbstractBankUI {
         updateHeader();
     }
 
-    @Override
-    protected Component createTitle(String baseTitle) {
-        return GuiTextures.createBankTitle("入金");
-    }
 
     public static void openAsync(AlcarisEconomy plugin, Player player) {
         UUID uuid = player.getUniqueId();
@@ -54,10 +49,7 @@ public class BankDepositUI extends AbstractBankUI {
     }
 
     private void buildLayout() {
-        for (int s : new int[]{27, 28, 29, 30, 31, 33}) {
-            setButton(s, makeFiller(Material.BLACK_STAINED_GLASS_PANE));
-        }
-        setButton(32, item(Material.GRAY_STAINED_GLASS_PANE, "&7戻る",
+        setButton(27, item(Material.GRAY_STAINED_GLASS_PANE, "&7戻る",
                 java.util.List.of("&7現金をインベントリに返却して戻ります")), this::doBack);
         setButton(34, item(Material.RED_STAINED_GLASS_PANE, "&cCLEAR",
                 java.util.List.of("&7スロットの現金を全て返却します")), this::doClear);

@@ -13,7 +13,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
+import io.papermc.paper.event.player.AsyncChatEvent;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.inventory.ItemStack;
 
 import java.sql.SQLException;
@@ -111,13 +112,16 @@ public class BankMainUI extends AbstractBankUI {
 
     private void buildLayout() {
 
-        setButton(10,  item(Material.CYAN_STAINED_GLASS_PANE,  "&b&l出金"),  this::openWithdraw);
-        setButton(12, item(Material.LIME_STAINED_GLASS_PANE,  "&a&l入金"),  this::openDeposit);
-        setButton(14, item(Material.ORANGE_STAINED_GLASS_PANE, "&6&l振込"), this::openTransfer);
+        setButton(10,  item(Material.CYAN_STAINED_GLASS_PANE,  "&b&l出金", -1),  this::openWithdraw);
+        setButton(11,  item(Material.BARRIER, "", 10002));
+        setButton(12, item(Material.LIME_STAINED_GLASS_PANE,  "&a&l入金", -1),  this::openDeposit);
+        setButton(13,  item(Material.BARRIER, "", 10002));
+        setButton(14, item(Material.ORANGE_STAINED_GLASS_PANE, "&6&l振込", -1), this::openTransfer);
+        setButton(15,  item(Material.BARRIER, "", 10002));
         buildFreezeButton();
 
         buildAccountInfoButton();
-        setButton(31, item(Material.RED_STAINED_GLASS_PANE, "&c&l閉じる"), player::closeInventory);
+        setButton(31, item(Material.RED_STAINED_GLASS_PANE, "&c&l閉じる", -1), player::closeInventory);
         buildTxLogButton();
     }
 
@@ -219,13 +223,12 @@ public class BankMainUI extends AbstractBankUI {
         Listener[] ref = {null};
         ref[0] = new Listener() {
             @org.bukkit.event.EventHandler
-            @SuppressWarnings("deprecation")
-            public void onChat(AsyncPlayerChatEvent event) {
+            public void onChat(AsyncChatEvent event) {
                 if (!event.getPlayer().getUniqueId().equals(player.getUniqueId())) return;
                 if (!handled.compareAndSet(false, true)) return;
                 event.setCancelled(true);
                 HandlerList.unregisterAll(ref[0]);
-                String name = event.getMessage().trim();
+                String name = PlainTextComponentSerializer.plainText().serialize(event.message()).trim();
                 if (name.equalsIgnoreCase("cancel")) {
                     player.sendMessage(c("&c振込入力がキャンセルされました。"));
                     return;

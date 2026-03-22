@@ -69,9 +69,19 @@ public abstract class AbstractBankUI implements InventoryHolder {
     }
 
     protected static ItemStack item(Material mat, String name) {
+        return item(mat, name, -1);
+    }
+
+    @SuppressWarnings("UnstableApiUsage")
+    protected static ItemStack item(Material mat, String name, int customModelData) {
         ItemStack is = new ItemStack(mat);
         ItemMeta m = is.getItemMeta();
         m.displayName(c(name));
+        if (customModelData >= 0) {
+            var cmd = m.getCustomModelDataComponent();
+            cmd.setFloats(List.of((float) customModelData));
+            m.setCustomModelDataComponent(cmd);
+        }
         is.setItemMeta(m);
         return is;
     }

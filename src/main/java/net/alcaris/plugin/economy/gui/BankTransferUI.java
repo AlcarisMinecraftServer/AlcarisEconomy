@@ -3,7 +3,6 @@ package net.alcaris.plugin.economy.gui;
 import net.alcaris.plugin.economy.AlcarisEconomy;
 import net.alcaris.plugin.economy.bank.TransferManager;
 import net.alcaris.plugin.economy.config.EconomyConfig;
-import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -39,10 +38,6 @@ public class BankTransferUI extends AbstractBankUI {
         updateHeader();
     }
 
-    @Override
-    protected Component createTitle(String baseTitle) {
-        return GuiTextures.createBankTitle("振込");
-    }
 
     public static void openAsync(AlcarisEconomy plugin, Player player, OfflinePlayer target) {
         UUID uuid = player.getUniqueId();
@@ -64,27 +59,19 @@ public class BankTransferUI extends AbstractBankUI {
         setButton(9,  numpadKey("7"), () -> { numpad.digit(7);   updateHeader(); });
         setButton(10, numpadKey("8"), () -> { numpad.digit(8);   updateHeader(); });
         setButton(11, numpadKey("9"), () -> { numpad.digit(9);   updateHeader(); });
-        setButton(12, makeFiller(Material.BLACK_STAINED_GLASS_PANE));
         setButton(13, presetKey("+1K"),   () -> { numpad.preset(1_000);   updateHeader(); });
         setButton(14, presetKey("+10K"),  () -> { numpad.preset(10_000);  updateHeader(); });
         setButton(15, presetKey("+100K"), () -> { numpad.preset(100_000); updateHeader(); });
-        setButton(16, makeFiller(Material.BLACK_STAINED_GLASS_PANE));
-        setButton(17, makeFiller(Material.BLACK_STAINED_GLASS_PANE));
 
         setButton(18, numpadKey("4"), () -> { numpad.digit(4); updateHeader(); });
         setButton(19, numpadKey("5"), () -> { numpad.digit(5); updateHeader(); });
         setButton(20, numpadKey("6"), () -> { numpad.digit(6); updateHeader(); });
-        setButton(21, makeFiller(Material.BLACK_STAINED_GLASS_PANE));
         setButton(22, item(Material.ORANGE_STAINED_GLASS_PANE, "&6全額"), () -> { numpad.setAll(); updateHeader(); });
-        for (int s = 23; s <= 26; s++) setButton(s, makeFiller(Material.BLACK_STAINED_GLASS_PANE));
 
         setButton(27, item(Material.RED_STAINED_GLASS_PANE, "&cC"), () -> { numpad.backspace(); updateHeader(); });
         setButton(28, numpadKey("0"),  () -> { numpad.digit(0);    updateHeader(); });
         setButton(29, numpadKey("00"), () -> { numpad.doubleZero(); updateHeader(); });
-        setButton(30, makeFiller(Material.BLACK_STAINED_GLASS_PANE));
-        setButton(31, makeFiller(Material.BLACK_STAINED_GLASS_PANE));
         setButton(32, item(Material.GRAY_STAINED_GLASS_PANE, "&7戻る"), () -> BankMainUI.openAsync(plugin, player));
-        setButton(33, makeFiller(Material.BLACK_STAINED_GLASS_PANE));
         setButton(34, item(Material.RED_STAINED_GLASS_PANE, "&cCLEAR"), () -> { numpad.clear(); updateHeader(); });
         setButton(35, item(Material.LIME_STAINED_GLASS_PANE, "&a&l送金"), this::doTransfer);
     }
