@@ -33,15 +33,8 @@ public abstract class AbstractBankUI implements InventoryHolder {
         this.previousUI = previousUI;
     }
 
-    /**
-     * Template method for creating GUI titles. Subclasses can override to provide custom styling.
-     * Default implementation maintains backward compatibility with simple text titles.
-     *
-     * @param baseTitle The base title text
-     * @return Component representing the GUI title
-     */
     protected Component createTitle(String baseTitle) {
-        return Component.text(baseTitle);  // Default implementation - backward compatibility
+        return Component.text(baseTitle);
     }
 
     protected void setButton(int slot, ItemStack icon, Runnable action) {
