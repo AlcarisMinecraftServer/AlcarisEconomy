@@ -37,6 +37,7 @@ public class CashItem {
         KEY_CHECKSUM = new NamespacedKey(plugin, "economy_checksum");
     }
 
+    @SuppressWarnings("UnstableApiUsage")
     public static ItemStack create(EconomyConfig.Denomination denom, String serverKey) {
         ItemStack item = new ItemStack(denom.material());
         ItemMeta meta = item.getItemMeta();
@@ -50,7 +51,9 @@ public class CashItem {
         meta.lore(loreComponents);
 
         if (denom.customModelData() != 0) {
-            meta.setCustomModelData(denom.customModelData());
+            var cmd = meta.getCustomModelDataComponent();
+            cmd.setFloats(List.of((float) denom.customModelData()));
+            meta.setCustomModelDataComponent(cmd);
         }
 
         if (denom.glint()) {

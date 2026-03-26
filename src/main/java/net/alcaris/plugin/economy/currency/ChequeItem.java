@@ -33,6 +33,7 @@ public class ChequeItem {
         customModelData = cmd;
     }
 
+    @SuppressWarnings("UnstableApiUsage")
     public static ItemStack create(long chequeId, long amount, String note, String issuerName) {
         ItemStack item = new ItemStack(Material.PAPER);
         ItemMeta meta = item.getItemMeta();
@@ -48,7 +49,11 @@ public class ChequeItem {
         lore.add(LegacyComponentSerializer.legacyAmpersand().deserialize("&8[ 右クリックで換金 ]"));
         meta.lore(lore);
 
-        if (customModelData != 0) meta.setCustomModelData(customModelData);
+        if (customModelData != 0) {
+            var cmd = meta.getCustomModelDataComponent();
+            cmd.setFloats(List.of((float) customModelData));
+            meta.setCustomModelDataComponent(cmd);
+        }
         meta.addEnchant(Enchantment.FORTUNE, 1, true);
         meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
 

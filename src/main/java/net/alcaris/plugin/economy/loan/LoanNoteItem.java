@@ -33,6 +33,7 @@ public class LoanNoteItem {
         customModelData = cmd;
     }
 
+    @SuppressWarnings("UnstableApiUsage")
     public static ItemStack create(long loanId, String borrowerName, long principal,
                                    long repayAmount, long dueAt, boolean hasCollateral, long remaining) {
         ItemStack item = new ItemStack(Material.PAPER);
@@ -50,7 +51,11 @@ public class LoanNoteItem {
         lore.add(LegacyComponentSerializer.legacyAmpersand().deserialize("&8[ 右クリックで返済回収 ]"));
         meta.lore(lore);
 
-        if (customModelData != 0) meta.setCustomModelData(customModelData);
+        if (customModelData != 0) {
+            var cmd = meta.getCustomModelDataComponent();
+            cmd.setFloats(List.of((float) customModelData));
+            meta.setCustomModelDataComponent(cmd);
+        }
         meta.addEnchant(Enchantment.FORTUNE, 1, true);
         meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
 
