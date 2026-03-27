@@ -35,9 +35,7 @@ public class BankTransferUI extends AbstractBankUI {
         long maxYen = Math.max(0, (balance - atmFee) / EconomyConfig.MULTIPLIER);
         this.numpad = new BankNumpadHelper(maxYen);
         buildLayout();
-        updateHeader();
     }
-
 
     public static void openAsync(AlcarisEconomy plugin, Player player, OfflinePlayer target) {
         UUID uuid = player.getUniqueId();
@@ -56,46 +54,31 @@ public class BankTransferUI extends AbstractBankUI {
     }
 
     private void buildLayout() {
-        setButton(9,  numpadKey("7"), () -> { numpad.digit(7);   updateHeader(); });
-        setButton(10, numpadKey("8"), () -> { numpad.digit(8);   updateHeader(); });
-        setButton(11, numpadKey("9"), () -> { numpad.digit(9);   updateHeader(); });
-        setButton(13, presetKey("+1K"),   () -> { numpad.preset(1_000);   updateHeader(); });
-        setButton(14, presetKey("+10K"),  () -> { numpad.preset(10_000);  updateHeader(); });
-        setButton(15, presetKey("+100K"), () -> { numpad.preset(100_000); updateHeader(); });
+        setButton(0,  numpadKey("7"), () -> numpad.digit(7));
+        setButton(1,  numpadKey("8"), () -> numpad.digit(8));
+        setButton(2,  numpadKey("9"), () -> numpad.digit(9));
 
-        setButton(18, numpadKey("4"), () -> { numpad.digit(4); updateHeader(); });
-        setButton(19, numpadKey("5"), () -> { numpad.digit(5); updateHeader(); });
-        setButton(20, numpadKey("6"), () -> { numpad.digit(6); updateHeader(); });
-        setButton(22, item(Material.ORANGE_STAINED_GLASS_PANE, "&6全額"), () -> { numpad.setAll(); updateHeader(); });
+        setButton(9,  numpadKey("4"), () -> numpad.digit(4));
+        setButton(10, numpadKey("5"), () -> numpad.digit(5));
+        setButton(11, numpadKey("6"), () -> numpad.digit(6));
 
-        setButton(27, item(Material.BARRIER, "&cC", 10006), () -> { numpad.backspace(); updateHeader(); });
-        setButton(28, numpadKey("0"),  () -> { numpad.digit(0);    updateHeader(); });
-        setButton(29, numpadKey("00"), () -> { numpad.doubleZero(); updateHeader(); });
-        setButton(32, item(Material.BARRIER, "&7戻る", 10001), () -> BankMainUI.openAsync(plugin, player));
-        setButton(34, item(Material.BARRIER, "&cCLEAR", 10006), () -> { numpad.clear(); updateHeader(); });
+        setButton(18, numpadKey("1"), () -> numpad.digit(1));
+        setButton(19, numpadKey("2"), () -> numpad.digit(2));
+        setButton(20, numpadKey("3"), () -> numpad.digit(3));
+
+        setButton(27, item(Material.BARRIER, "&cC",      10006), () -> numpad.backspace());
+        setButton(28, numpadKey("0"),                            () -> numpad.digit(0));
+        setButton(29, item(Material.BARRIER, "&f.",      10017), () -> numpad.doubleZero());
+
+        setButton(32, item(Material.BARRIER, "&7戻る",   10001), () -> BankMainUI.openAsync(plugin, player));
         setButton(35, item(Material.BARRIER, "&a&l送金", 10005), this::doTransfer);
-    }
-
-    private void updateHeader() {
-        String targetName = target.getName() != null ? target.getName() : "不明";
-        ItemStack header = item(Material.CYAN_STAINED_GLASS_PANE,
-                "&b振込先: &f" + targetName
-                        + "  &b残高: &f" + config.format(balance)
-                        + "  &b手数料: &f" + config.format(atmFee)
-                        + "  &b入力: &f" + config.format(numpad.getInternal()));
-        for (int i = 0; i < 9; i++) inventory.setItem(i, header);
-    }
-
-    private void showHeaderError(String msg) {
-        ItemStack header = item(Material.RED_STAINED_GLASS_PANE, "&c" + msg);
-        for (int i = 0; i < 9; i++) inventory.setItem(i, header);
     }
 
     private void doTransfer() {
         long internal = numpad.getInternal();
-        if (internal <= 0) { showHeaderError("金額を入力してください"); return; }
+        if (internal <= 0) { player.sendActionBar(c("&c金額を入力してください")); return; }
 
-        setButton(35, makeFiller(Material.GRAY_STAINED_GLASS_PANE), null);
+        setButton(35, item(Material.BARRIER, "", 10000), null);
 
         UUID fromUuid = player.getUniqueId();
         UUID toUuid = target.getUniqueId();
@@ -113,13 +96,13 @@ public class BankTransferUI extends AbstractBankUI {
                 } else {
                     String reason = result.failReason();
                     if ("SENDER_FROZEN".equals(reason)) {
-                        showHeaderError("送金者の口座が凍結されています");
+                        player.sendActionBar(c("&c送金者の口座が凍結されています"));
                     } else if (reason != null && reason.startsWith("RECEIVER_FROZEN")) {
-                        showHeaderError("受取人の口座が凍結されています");
+                        player.sendActionBar(c("&c受取人の口座が凍結されています"));
                     } else if (reason != null && reason.startsWith("INSUFFICIENT")) {
-                        showHeaderError("残高が不足しています（手数料込み）");
+                        player.sendActionBar(c("&c残高が不足しています（手数料込み）"));
                     } else {
-                        showHeaderError("送金に失敗しました");
+                        player.sendActionBar(c("&c送金に失敗しました"));
                     }
                     setButton(35, item(Material.BARRIER, "&a&l送金", 10005), this::doTransfer);
                 }
@@ -129,12 +112,8 @@ public class BankTransferUI extends AbstractBankUI {
 
     @SuppressWarnings("UnstableApiUsage")
     private static ItemStack numpadKey(String label) {
-        int digit = label.equals("00") ? 0 : Integer.parseInt(label);
+        int digit = Integer.parseInt(label);
         return item(Material.BARRIER, "&f" + label, 10007 + digit);
-    }
-
-    private static ItemStack presetKey(String label) {
-        return item(Material.LIGHT_GRAY_STAINED_GLASS_PANE, "&7" + label);
     }
 
     @Override

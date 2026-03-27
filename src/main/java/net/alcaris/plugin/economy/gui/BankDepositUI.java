@@ -3,6 +3,7 @@ package net.alcaris.plugin.economy.gui;
 import net.alcaris.plugin.economy.AlcarisEconomy;
 import net.alcaris.plugin.economy.config.EconomyConfig;
 import net.alcaris.plugin.economy.currency.CashItem;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -22,6 +23,11 @@ public class BankDepositUI extends AbstractBankUI {
     private final EconomyConfig config;
     private final long accountBalance;
     private volatile boolean depositProcessed = false;
+
+    @Override
+    protected Component createTitle(String baseTitle) {
+        return GuiTextures.createDepositTitle("入金");
+    }
 
     private BankDepositUI(AlcarisEconomy plugin, Player player, long accountBalance) {
         super(plugin, TITLE, 4, null);
