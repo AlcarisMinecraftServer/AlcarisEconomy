@@ -87,6 +87,15 @@ public abstract class AbstractBankUI implements InventoryHolder {
         return is;
     }
 
+    @SuppressWarnings("UnstableApiUsage")
+    protected static ItemStack item(Material mat, String name, int customModelData, List<String> lore) {
+        ItemStack is = item(mat, name, customModelData);
+        ItemMeta m = is.getItemMeta();
+        m.lore(lore.stream().map(AbstractBankUI::c).collect(Collectors.toList()));
+        is.setItemMeta(m);
+        return is;
+    }
+
     public void open(Player player) {
         Bukkit.getScheduler().runTask(plugin, () -> player.openInventory(inventory));
     }

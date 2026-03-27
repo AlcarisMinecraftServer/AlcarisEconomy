@@ -49,11 +49,11 @@ public class BankDepositUI extends AbstractBankUI {
     }
 
     private void buildLayout() {
-        setButton(27, item(Material.GRAY_STAINED_GLASS_PANE, "&7戻る",
+        setButton(27, item(Material.BARRIER, "&7戻る", 10001,
                 java.util.List.of("&7現金をインベントリに返却して戻ります")), this::doBack);
-        setButton(34, item(Material.RED_STAINED_GLASS_PANE, "&cCLEAR",
+        setButton(34, item(Material.BARRIER, "&cCLEAR", 10006,
                 java.util.List.of("&7スロットの現金を全て返却します")), this::doClear);
-        setButton(35, item(Material.LIME_STAINED_GLASS_PANE, "&a&l入金"), this::doDeposit);
+        setButton(35, item(Material.BARRIER, "&a&l入金", 10005), this::doDeposit);
     }
 
     private void updateHeader() {

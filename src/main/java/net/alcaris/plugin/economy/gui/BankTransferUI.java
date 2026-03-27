@@ -68,12 +68,12 @@ public class BankTransferUI extends AbstractBankUI {
         setButton(20, numpadKey("6"), () -> { numpad.digit(6); updateHeader(); });
         setButton(22, item(Material.ORANGE_STAINED_GLASS_PANE, "&6全額"), () -> { numpad.setAll(); updateHeader(); });
 
-        setButton(27, item(Material.RED_STAINED_GLASS_PANE, "&cC"), () -> { numpad.backspace(); updateHeader(); });
+        setButton(27, item(Material.BARRIER, "&cC", 10006), () -> { numpad.backspace(); updateHeader(); });
         setButton(28, numpadKey("0"),  () -> { numpad.digit(0);    updateHeader(); });
         setButton(29, numpadKey("00"), () -> { numpad.doubleZero(); updateHeader(); });
-        setButton(32, item(Material.GRAY_STAINED_GLASS_PANE, "&7戻る"), () -> BankMainUI.openAsync(plugin, player));
-        setButton(34, item(Material.RED_STAINED_GLASS_PANE, "&cCLEAR"), () -> { numpad.clear(); updateHeader(); });
-        setButton(35, item(Material.LIME_STAINED_GLASS_PANE, "&a&l送金"), this::doTransfer);
+        setButton(32, item(Material.BARRIER, "&7戻る", 10001), () -> BankMainUI.openAsync(plugin, player));
+        setButton(34, item(Material.BARRIER, "&cCLEAR", 10006), () -> { numpad.clear(); updateHeader(); });
+        setButton(35, item(Material.BARRIER, "&a&l送金", 10005), this::doTransfer);
     }
 
     private void updateHeader() {
@@ -121,14 +121,16 @@ public class BankTransferUI extends AbstractBankUI {
                     } else {
                         showHeaderError("送金に失敗しました");
                     }
-                    setButton(35, item(Material.LIME_STAINED_GLASS_PANE, "&a&l送金"), this::doTransfer);
+                    setButton(35, item(Material.BARRIER, "&a&l送金", 10005), this::doTransfer);
                 }
             });
         });
     }
 
+    @SuppressWarnings("UnstableApiUsage")
     private static ItemStack numpadKey(String label) {
-        return item(Material.GRAY_STAINED_GLASS_PANE, "&f" + label);
+        int digit = label.equals("00") ? 0 : Integer.parseInt(label);
+        return item(Material.BARRIER, "&f" + label, 10007 + digit);
     }
 
     private static ItemStack presetKey(String label) {

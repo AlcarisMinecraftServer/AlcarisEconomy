@@ -113,15 +113,15 @@ public class BankMainUI extends AbstractBankUI {
     private void buildLayout() {
 
         setButton(10,  item(Material.CYAN_STAINED_GLASS_PANE,  "&b&l出金", -1),  this::openWithdraw);
-        setButton(11,  item(Material.BARRIER, "", 10002));
+        setButton(11,  item(Material.BARRIER, "", 10000));
         setButton(12, item(Material.LIME_STAINED_GLASS_PANE,  "&a&l入金", -1),  this::openDeposit);
-        setButton(13,  item(Material.BARRIER, "", 10002));
+        setButton(13,  item(Material.BARRIER, "", 10000));
         setButton(14, item(Material.ORANGE_STAINED_GLASS_PANE, "&6&l振込", -1), this::openTransfer);
-        setButton(15,  item(Material.BARRIER, "", 10002));
+        setButton(15,  item(Material.BARRIER, "", 10000));
         buildFreezeButton();
 
         buildAccountInfoButton();
-        setButton(31, item(Material.RED_STAINED_GLASS_PANE, "&c&l閉じる", -1), player::closeInventory);
+        setButton(31, item(Material.BARRIER, "&c&l閉じる", 10002), player::closeInventory);
         buildTxLogButton();
     }
 
@@ -143,7 +143,7 @@ public class BankMainUI extends AbstractBankUI {
                 "&7状態: " + statusStr,
                 "&7最終取引: &f" + timeStr
         );
-        ItemStack infoItem = item(Material.PURPLE_STAINED_GLASS_PANE, "&d&lアカウント情報", lore);
+        ItemStack infoItem = item(Material.BARRIER, "&d&lアカウント情報", 10003, lore);
         setButton(30, infoItem, () -> {
             player.sendMessage(c("&d&lアカウント情報"));
             player.sendMessage(c("&7残高: &f" + config.format(balance)));
@@ -171,7 +171,7 @@ public class BankMainUI extends AbstractBankUI {
         }
         if (lore.isEmpty()) lore.add("&7取引履歴がありません");
 
-        ItemStack txItem = item(Material.BLUE_STAINED_GLASS_PANE, "&b&l取引履歴", lore);
+        ItemStack txItem = item(Material.BARRIER, "&b&l取引履歴", 10004, lore);
         List<String> loreCopy = List.copyOf(lore);
         setButton(32, txItem, () -> {
             player.sendMessage(c("&b&l取引履歴"));
@@ -222,11 +222,12 @@ public class BankMainUI extends AbstractBankUI {
         AtomicBoolean handled = new AtomicBoolean(false);
         Listener[] ref = {null};
         ref[0] = new Listener() {
-            @org.bukkit.event.EventHandler
+            @org.bukkit.event.EventHandler(priority = org.bukkit.event.EventPriority.LOWEST)
             public void onChat(AsyncChatEvent event) {
                 if (!event.getPlayer().getUniqueId().equals(player.getUniqueId())) return;
                 if (!handled.compareAndSet(false, true)) return;
                 event.setCancelled(true);
+                event.viewers().clear();
                 HandlerList.unregisterAll(ref[0]);
                 String name = PlainTextComponentSerializer.plainText().serialize(event.message()).trim();
                 if (name.equalsIgnoreCase("cancel")) {
