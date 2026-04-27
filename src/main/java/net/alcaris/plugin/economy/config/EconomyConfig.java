@@ -293,6 +293,7 @@ public class EconomyConfig {
         return 0.03;
     }
 
+    @SuppressWarnings("SameParameterValue")
     private static double mapDblKey(Map<String, Object> map, String key, double def) {
         Object v = map.get(key);
         if (v instanceof Number n) return n.doubleValue();
