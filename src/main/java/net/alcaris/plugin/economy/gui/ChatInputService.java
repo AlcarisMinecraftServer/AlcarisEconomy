@@ -42,13 +42,6 @@ public class ChatInputService implements Listener {
         }, timeoutTicks).getTaskId();
     }
 
-    public boolean cancelRequest(Player player) {
-        PendingRequest request = pending.remove(player.getUniqueId());
-        if (request == null) return false;
-        request.cancelTimeout();
-        return true;
-    }
-
     @EventHandler(priority = EventPriority.LOWEST)
     public void onChat(AsyncChatEvent event) {
         PendingRequest request = pending.remove(event.getPlayer().getUniqueId());
@@ -66,7 +59,7 @@ public class ChatInputService implements Listener {
         if (request != null) request.cancelTimeout();
     }
 
-    private final class PendingRequest {
+    private static final class PendingRequest {
         private final Consumer<String> onInput;
         private final Runnable onTimeout;
         private int timeoutTaskId = -1;
