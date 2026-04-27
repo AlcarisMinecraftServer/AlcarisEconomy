@@ -54,24 +54,36 @@ public class BankTransferUI extends AbstractBankUI {
     }
 
     private void buildLayout() {
-        setButton(0,  numpadKey("7"), () -> numpad.digit(7));
-        setButton(1,  numpadKey("8"), () -> numpad.digit(8));
-        setButton(2,  numpadKey("9"), () -> numpad.digit(9));
+        setButton(0,  numpadKey("7"), () -> { numpad.digit(7); updateHeader(); });
+        setButton(1,  numpadKey("8"), () -> { numpad.digit(8); updateHeader(); });
+        setButton(2,  numpadKey("9"), () -> { numpad.digit(9); updateHeader(); });
 
-        setButton(9,  numpadKey("4"), () -> numpad.digit(4));
-        setButton(10, numpadKey("5"), () -> numpad.digit(5));
-        setButton(11, numpadKey("6"), () -> numpad.digit(6));
+        setButton(9,  numpadKey("4"), () -> { numpad.digit(4); updateHeader(); });
+        setButton(10, numpadKey("5"), () -> { numpad.digit(5); updateHeader(); });
+        setButton(11, numpadKey("6"), () -> { numpad.digit(6); updateHeader(); });
 
-        setButton(18, numpadKey("1"), () -> numpad.digit(1));
-        setButton(19, numpadKey("2"), () -> numpad.digit(2));
-        setButton(20, numpadKey("3"), () -> numpad.digit(3));
+        setButton(18, numpadKey("1"), () -> { numpad.digit(1); updateHeader(); });
+        setButton(19, numpadKey("2"), () -> { numpad.digit(2); updateHeader(); });
+        setButton(20, numpadKey("3"), () -> { numpad.digit(3); updateHeader(); });
 
-        setButton(27, item(Material.BARRIER, "&cC",      10006), () -> numpad.backspace());
-        setButton(28, numpadKey("0"),                            () -> numpad.digit(0));
-        setButton(29, item(Material.BARRIER, "&f.",      10017), () -> numpad.doubleZero());
+        setButton(27, item(Material.BARRIER, "&cC",      10006), () -> { numpad.backspace();   updateHeader(); });
+        setButton(28, numpadKey("0"),                            () -> { numpad.digit(0);       updateHeader(); });
+        setButton(29, item(Material.BARRIER, "&f.",      10017), () -> { numpad.doubleZero();   updateHeader(); });
 
         setButton(32, item(Material.BARRIER, "&7戻る",   10001), () -> BankMainUI.openAsync(plugin, player));
         setButton(35, item(Material.BARRIER, "&a&l送金", 10005), this::doTransfer);
+
+        updateHeader();
+    }
+
+    private void updateHeader() {
+        String targetName = target.getName() != null ? target.getName() : "不明";
+        ItemStack header = item(Material.CYAN_STAINED_GLASS_PANE,
+                "&b振込先: &f" + targetName
+                        + "  &b残高: &f" + config.format(balance)
+                        + "  &b手数料: &f" + config.format(atmFee)
+                        + "  &b入力: &f" + config.format(numpad.getInternal()));
+        for (int i = 3; i <= 8; i++) inventory.setItem(i, header);
     }
 
     private void doTransfer() {
