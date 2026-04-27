@@ -124,7 +124,7 @@ public class EconomyConfig {
     public EconomyConfig(FileConfiguration cfg) {
         this.cfg = cfg;
 
-        this.defaultBalance = (long) (cfg.getInt("currency.defaultBalance", 10000) * MULTIPLIER);
+        this.defaultBalance = cfg.getInt("currency.defaultBalance", 10000) * MULTIPLIER;
         this.createAccountOnJoin = cfg.getBoolean("currency.createAccountOnJoin", true);
         this.currencyFormat = cfg.getString("currency.format.format", "{major}円");
         this.singularMajor = cfg.getString("currency.format.singularMajor", "円");
@@ -163,18 +163,18 @@ public class EconomyConfig {
         this.lazyWrite = cfg.getBoolean("lazyWrite", true);
 
         this.remoteRate = cfg.getDouble("transfer.remote.rate", 0.03);
-        this.remoteFlat = (long) (cfg.getInt("transfer.remote.flat", 50) * MULTIPLIER);
-        this.remoteMinimum = (long) (cfg.getInt("transfer.remote.minimum", 50) * MULTIPLIER);
-        this.remoteMaximum = (long) (cfg.getInt("transfer.remote.maximum", 5000) * MULTIPLIER);
-        this.atmFlat = (long) (cfg.getInt("transfer.atm.flat", 100) * MULTIPLIER);
+        this.remoteFlat = cfg.getInt("transfer.remote.flat", 50) * MULTIPLIER;
+        this.remoteMinimum = cfg.getInt("transfer.remote.minimum", 50) * MULTIPLIER;
+        this.remoteMaximum = cfg.getInt("transfer.remote.maximum", 5000) * MULTIPLIER;
+        this.atmFlat = cfg.getInt("transfer.atm.flat", 100) * MULTIPLIER;
 
         this.inactiveDays = cfg.getInt("freeze.inactive_days", 30);
         this.warningDaysBefore = cfg.getInt("freeze.warning_days_before", 7);
-        this.unfreezeFee = (long) (cfg.getInt("freeze.unfreeze_fee", 500) * MULTIPLIER);
+        this.unfreezeFee = cfg.getInt("freeze.unfreeze_fee", 500) * MULTIPLIER;
 
         this.interestEnabled = cfg.getBoolean("interest.enabled", true);
         this.baseRate = cfg.getDouble("interest.base_rate", 0.005);
-        this.maxInterestAmount = (long) (cfg.getInt("interest.max_amount", 10000) * MULTIPLIER);
+        this.maxInterestAmount = cfg.getInt("interest.max_amount", 10000) * MULTIPLIER;
         this.applyHour = cfg.getInt("interest.apply_hour", 0);
         ConfigurationSection act = cfg.getConfigurationSection("interest.activity");
         this.combatPerKill = act != null ? act.getInt("combat_per_kill", 2) : 2;
@@ -216,8 +216,8 @@ public class EconomyConfig {
         }
 
         this.chequeEnabled = cfg.getBoolean("cheque.enabled", true);
-        this.chequeMinAmount = (long) (cfg.getInt("cheque.min_amount", 1) * MULTIPLIER);
-        this.chequeMaxAmount = (long) (cfg.getInt("cheque.max_amount", 1000000) * MULTIPLIER);
+        this.chequeMinAmount = cfg.getInt("cheque.min_amount", 1) * MULTIPLIER;
+        this.chequeMaxAmount = cfg.getInt("cheque.max_amount", 1000000) * MULTIPLIER;
         this.chequeMaxNoteLength = cfg.getInt("cheque.max_note_length", 50);
         this.chequeCustomModelData = cfg.getInt("cheque.custom_model_data", 2001);
 
@@ -228,7 +228,7 @@ public class EconomyConfig {
         this.loanNoteCustomModelData = cfg.getInt("loan.player.note_custom_model_data", 3001);
 
         this.loanServerEnabled = cfg.getBoolean("loan.server.enabled", true);
-        this.loanServerBorrowLimit = (long) (cfg.getInt("loan.server.borrow_limit", 500000) * MULTIPLIER);
+        this.loanServerBorrowLimit = cfg.getInt("loan.server.borrow_limit", 500000) * MULTIPLIER;
         this.loanServerBorrowMultiplier = cfg.getDouble("loan.server.borrow_limit_multiplier", 2.0);
         this.loanServerDailyRate = cfg.getDouble("loan.server.daily_interest_rate", 0.003);
         this.loanOverdue1Days = cfg.getInt("loan.server.overdue_1_days", 7);
@@ -272,7 +272,7 @@ public class EconomyConfig {
         this.econIndexTransferWeight = cfg.getDouble("crypto.engine.economy_index.transfer_weight", 1.0);
         this.econIndexOnlineWeight = cfg.getDouble("crypto.engine.economy_index.online_weight", 0.5);
         this.econIndexFreezeWeight = cfg.getDouble("crypto.engine.economy_index.freeze_weight", 0.5);
-        this.econIndexTreasuryThreshold = (long) (cfg.getInt("crypto.engine.economy_index.treasury_stability_threshold", 1000000) * MULTIPLIER);
+        this.econIndexTreasuryThreshold = cfg.getInt("crypto.engine.economy_index.treasury_stability_threshold", 1000000) * MULTIPLIER;
         this.econIndexTreasuryFactor = cfg.getDouble("crypto.engine.economy_index.treasury_stability_factor", 0.9);
     }
 
