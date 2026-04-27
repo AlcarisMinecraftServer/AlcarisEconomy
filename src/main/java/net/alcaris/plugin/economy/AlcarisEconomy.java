@@ -40,6 +40,7 @@ import net.alcaris.plugin.economy.repository.LazyRepository;
 import net.alcaris.plugin.economy.repository.SyncRepository;
 import net.alcaris.plugin.economy.repository.TxLogRepository;
 import net.alcaris.plugin.economy.gui.BankUIService;
+import net.alcaris.plugin.economy.gui.ChatInputService;
 import net.alcaris.plugin.economy.util.BalanceProviderRegistry;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.plugin.ServicePriority;
@@ -69,6 +70,7 @@ public final class AlcarisEconomy extends JavaPlugin {
     private ServerLoanService serverLoanService;
     private ServerLoanRepository serverLoanRepository;
     private LoanScheduler loanScheduler;
+    private ChatInputService chatInputService;
 
     private volatile boolean initialized = false;
 
@@ -197,6 +199,8 @@ public final class AlcarisEconomy extends JavaPlugin {
             getServer().getPluginManager().registerEvents(new EventListener(this), this);
             getServer().getPluginManager().registerEvents(new CashItemListener(this), this);
             getServer().getPluginManager().registerEvents(new BankUIService(), this);
+            this.chatInputService = new ChatInputService(this);
+            getServer().getPluginManager().registerEvents(chatInputService, this);
 
             freezeManager.startScheduler();
             freezeManager.runStartupCheck();
@@ -286,5 +290,6 @@ public final class AlcarisEconomy extends JavaPlugin {
     public PlayerLoanService getPlayerLoanService()          { return playerLoanService; }
     public ServerLoanService getServerLoanService()          { return serverLoanService; }
     public ServerLoanRepository getServerLoanRepository()    { return serverLoanRepository; }
+    public ChatInputService getChatInputService()            { return chatInputService; }
     public boolean isInitialized()                           { return initialized; }
 }

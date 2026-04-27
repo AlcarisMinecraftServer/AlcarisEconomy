@@ -10,11 +10,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
-import org.bukkit.event.HandlerList;
-import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryCloseEvent;
-import io.papermc.paper.event.player.AsyncChatEvent;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.inventory.ItemStack;
 
 import java.sql.SQLException;
@@ -25,7 +21,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class BankMainUI extends AbstractBankUI {
 
@@ -215,36 +210,15 @@ public class BankMainUI extends AbstractBankUI {
     private void openTransfer() {
         player.closeInventory();
         player.sendMessage(c("振込先のプレイヤー名を入力してください &8(cancelと入力することでキャンセルできます)"));
-        registerTransferListener();
-    }
-
-    private void registerTransferListener() {
-        AtomicBoolean handled = new AtomicBoolean(false);
-        Listener[] ref = {null};
-        ref[0] = new Listener() {
-            @org.bukkit.event.EventHandler(priority = org.bukkit.event.EventPriority.LOWEST)
-            public void onChat(AsyncChatEvent event) {
-                if (!event.getPlayer().getUniqueId().equals(player.getUniqueId())) return;
-                if (!handled.compareAndSet(false, true)) return;
-                event.setCancelled(true);
-                event.viewers().clear();
-                HandlerList.unregisterAll(ref[0]);
-                String name = PlainTextComponentSerializer.plainText().serialize(event.message()).trim();
-                if (name.equalsIgnoreCase("cancel")) {
-                    player.sendMessage(c("&c振込入力がキャンセルされました。"));
-                    return;
-                }
-                Bukkit.getScheduler().runTask(plugin, () -> resolveAndOpenTransfer(name));
-            }
-        };
-        plugin.getServer().getPluginManager().registerEvents(ref[0], plugin);
-
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            if (handled.compareAndSet(false, true)) {
-                HandlerList.unregisterAll(ref[0]);
-                player.sendMessage(c("&c振込入力がキャンセルされました。"));
-            }
-        }, 20L * 30);
+        plugin.getChatInputService().requestInput(player,
+                name -> {
+                    if (name.equalsIgnoreCase("cancel")) {
+                        player.sendMessage(c("&c振込入力がキャンセルされました。"));
+                        return;
+                    }
+                    resolveAndOpenTransfer(name);
+                },
+                () -> player.sendMessage(c("&c振込入力がキャンセルされました。")));
     }
 
     private void resolveAndOpenTransfer(String name) {
