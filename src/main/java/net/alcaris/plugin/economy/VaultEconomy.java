@@ -76,10 +76,19 @@ public class VaultEconomy implements Economy {
     @Override public double getBalance(String playerName, String world) { return getBalance(playerName); }
     @Override public double getBalance(OfflinePlayer player, String world) { return getBalance(player); }
 
-    @Override public boolean has(String playerName, double amount)                      { return getBalance(playerName) >= amount; }
-    @Override public boolean has(OfflinePlayer player, double amount)                   { return getBalance(player) >= amount; }
+    @Override public boolean has(String playerName, double amount)                      { return has(plugin.getServer().getOfflinePlayer(playerName), amount); }
+    @Override public boolean has(OfflinePlayer player, double amount)                   { return !isFrozenSafe(player) && getBalance(player) >= amount; }
     @Override public boolean has(String playerName, String worldName, double amount)    { return has(playerName, amount); }
     @Override public boolean has(OfflinePlayer player, String worldName, double amount) { return has(player, amount); }
+
+    private boolean isFrozenSafe(OfflinePlayer player) {
+        try {
+            return repository.isFrozen(player.getUniqueId());
+        } catch (SQLException e) {
+            logger.warning("[VaultEconomy] isFrozen check failed for " + player.getUniqueId() + ": " + e.getMessage());
+            return true;
+        }
+    }
 
     @Override
     public EconomyResponse withdrawPlayer(String playerName, double amount) {
@@ -92,6 +101,10 @@ public class VaultEconomy implements Economy {
             return new EconomyResponse(amount, 0, EconomyResponse.ResponseType.FAILURE, "Amount must be positive");
         }
         try {
+            if (repository.isFrozen(player.getUniqueId())) {
+                return new EconomyResponse(amount, toExternal(repository.getBalance(player.getUniqueId())),
+                        EconomyResponse.ResponseType.FAILURE, "Account is frozen");
+            }
             long internal = toInternal(amount);
             long balance = repository.getBalance(player.getUniqueId());
             if (balance < internal) {
@@ -121,6 +134,10 @@ public class VaultEconomy implements Economy {
             return new EconomyResponse(amount, 0, EconomyResponse.ResponseType.FAILURE, "Amount must be positive");
         }
         try {
+            if (repository.isFrozen(player.getUniqueId())) {
+                return new EconomyResponse(amount, toExternal(repository.getBalance(player.getUniqueId())),
+                        EconomyResponse.ResponseType.FAILURE, "Account is frozen");
+            }
             long internal = toInternal(amount);
             repository.addBalance(player.getUniqueId(), internal);
             long newBalance = repository.getBalance(player.getUniqueId());
