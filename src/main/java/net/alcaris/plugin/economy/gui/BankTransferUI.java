@@ -122,7 +122,6 @@ public class BankTransferUI extends AbstractBankUI {
         });
     }
 
-    @SuppressWarnings("UnstableApiUsage")
     private static ItemStack numpadKey(String label) {
         int digit = Integer.parseInt(label);
         return item(Material.BARRIER, "&f" + label, 10007 + digit);
