@@ -65,15 +65,13 @@ public class LoanCommand implements CommandExecutor, TabCompleter {
         }
         OfflinePlayer borrower = CommandUtils.findOfflinePlayer(args[1]);
         if (borrower == null) { CommandUtils.msg(sender, "&cプレイヤーが見つかりません。"); return true; }
-        double principal = CommandUtils.parsePositiveDouble(args[2]);
-        double repayAmount = CommandUtils.parsePositiveDouble(args[3]);
-        if (principal < 0 || repayAmount < 0) { CommandUtils.msg(sender, "&c無効な金額です。"); return true; }
+        long principalInternal = CommandUtils.parsePositiveAmount(args[2]);
+        long repayInternal = CommandUtils.parsePositiveAmount(args[3]);
+        if (principalInternal < 0 || repayInternal < 0) { CommandUtils.msg(sender, "&c無効な金額です。"); return true; }
         int durationDays;
         try { durationDays = Integer.parseInt(args[4]); } catch (NumberFormatException e) {
             CommandUtils.msg(sender, "&c日数が無効です。"); return true;
         }
-        long principalInternal = CommandUtils.toInternal(principal);
-        long repayInternal = CommandUtils.toInternal(repayAmount);
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
                 long loanId = playerLoanService.create(player, borrower, principalInternal, repayInternal, durationDays);
@@ -159,15 +157,15 @@ public class LoanCommand implements CommandExecutor, TabCompleter {
                 if (args.length >= 3) {
                     long loanId = parseLoanId(sender, args[1]);
                     if (loanId < 0) return;
-                    double amount = CommandUtils.parsePositiveDouble(args[2]);
+                    long amount = CommandUtils.parsePositiveAmount(args[2]);
                     if (amount < 0) { CommandUtils.msg(sender, "&c無効な金額です。"); return; }
-                    String err = playerLoanService.repay(player, loanId, CommandUtils.toInternal(amount));
+                    String err = playerLoanService.repay(player, loanId, amount);
                     if (err == null) CommandUtils.msg(sender, "&a[ローン] 返済しました。");
                     else handlePlayerLoanError(sender, err);
                 } else {
-                    double amount = CommandUtils.parsePositiveDouble(args[1]);
+                    long amount = CommandUtils.parsePositiveAmount(args[1]);
                     if (amount < 0) { CommandUtils.msg(sender, "&c無効な金額です。"); return; }
-                    String err = serverLoanService.repay(player, CommandUtils.toInternal(amount));
+                    String err = serverLoanService.repay(player, amount);
                     if (err == null) CommandUtils.msg(sender, "&a[サーバーローン] 返済しました。");
                     else handleServerLoanError(sender, err);
                 }
@@ -183,9 +181,8 @@ public class LoanCommand implements CommandExecutor, TabCompleter {
         Player player = CommandUtils.requirePlayer(sender);
         if (player == null) return true;
         if (args.length < 2) { CommandUtils.msg(sender, "&c使い方: /loan borrow <金額>"); return true; }
-        double amount = CommandUtils.parsePositiveDouble(args[1]);
-        if (amount < 0) { CommandUtils.msg(sender, "&c無効な金額です。"); return true; }
-        long internal = CommandUtils.toInternal(amount);
+        long internal = CommandUtils.parsePositiveAmount(args[1]);
+        if (internal < 0) { CommandUtils.msg(sender, "&c無効な金額です。"); return true; }
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
                 String err = serverLoanService.borrow(player, internal);
@@ -229,9 +226,9 @@ public class LoanCommand implements CommandExecutor, TabCompleter {
         if (player == null) return true;
         Long autopay = null;
         if (args.length >= 2 && !args[1].equalsIgnoreCase("off")) {
-            double amount = CommandUtils.parsePositiveDouble(args[1]);
+            long amount = CommandUtils.parsePositiveAmount(args[1]);
             if (amount < 0) { CommandUtils.msg(sender, "&c無効な金額です。"); return true; }
-            autopay = CommandUtils.toInternal(amount);
+            autopay = amount;
         }
         final Long finalAutopay = autopay;
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {

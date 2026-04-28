@@ -25,17 +25,17 @@ public class VaultEconomy implements Economy {
     }
 
     private static long toInternal(double amount) {
-        return Math.round(amount * EconomyConfig.MULTIPLIER);
+        return (long) Math.floor(amount);
     }
 
     private static double toExternal(long amount) {
-        return (double) amount / EconomyConfig.MULTIPLIER;
+        return (double) amount;
     }
 
     @Override public boolean isEnabled()             { return plugin.isEnabled(); }
     @Override public String getName()                { return "AlcarisEconomy"; }
     @Override public boolean hasBankSupport()        { return false; }
-    @Override public int fractionalDigits()          { return 2; }
+    @Override public int fractionalDigits()          { return 0; }
     @Override public String format(double amount)    { return config.format(toInternal(amount)); }
     @Override public String currencyNamePlural()     { return config.getSingularMajor(); }
     @Override public String currencyNameSingular()   { return config.getSingularMajor(); }

@@ -70,14 +70,14 @@ public class CashItem {
         return item;
     }
 
-    public static List<ItemStack> makeChange(long totalInternal, List<EconomyConfig.Denomination> denomsDesc, String serverKey) {
+    public static List<ItemStack> makeChange(long totalAmount, List<EconomyConfig.Denomination> denomsDesc, String serverKey) {
         List<ItemStack> result = new ArrayList<>();
-        long remaining = totalInternal;
+        long remaining = totalAmount;
 
         for (EconomyConfig.Denomination denom : denomsDesc) {
-            long denomInternal = (long) denom.amount() * EconomyConfig.MULTIPLIER;
-            long count = remaining / denomInternal;
-            remaining %= denomInternal;
+            long denomValue = denom.amount();
+            long count = remaining / denomValue;
+            remaining %= denomValue;
 
             while (count > 0) {
                 int stackSize = (int) Math.min(count, 64);
@@ -139,7 +139,7 @@ public class CashItem {
             PersistentDataContainer pdc = meta.getPersistentDataContainer();
             if (pdc.getOrDefault(KEY_CASH, PersistentDataType.BOOLEAN, false)) {
                 Integer amt = pdc.get(KEY_AMOUNT, PersistentDataType.INTEGER);
-                if (amt != null) total += (long) amt * item.getAmount() * EconomyConfig.MULTIPLIER;
+                if (amt != null) total += (long) amt * item.getAmount();
             }
         }
         return total;

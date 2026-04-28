@@ -23,8 +23,6 @@ import java.util.logging.Logger;
 
 public class CryptoMarket {
 
-    private static final long CRYPTO_MULTIPLIER = 100L;
-
     private final Map<String, CryptoAsset> assets = new HashMap<>();
     private RateEngine rateEngine;
     private final BalanceRepository balanceRepo;
@@ -112,7 +110,7 @@ public class CryptoMarket {
         if (asset == null) return new TradeResult(false, 0, 0, "UNKNOWN_SYMBOL");
 
         long price = asset.getBuyPrice() > 0 ? asset.getBuyPrice() : asset.getCurrentRate();
-        long totalCost = quantity * price / CRYPTO_MULTIPLIER;
+        long totalCost = quantity * price;
         long fee = Math.round(totalCost * config.getCryptoFeeRate());
         long totalWithFee = totalCost + fee;
 
@@ -145,7 +143,7 @@ public class CryptoMarket {
             if (holding < quantity) return new TradeResult(false, 0, 0, "INSUFFICIENT_HOLDING");
 
             long price = asset.getSellPrice() > 0 ? asset.getSellPrice() : asset.getCurrentRate();
-            long totalValue = quantity * price / CRYPTO_MULTIPLIER;
+            long totalValue = quantity * price;
             long fee = Math.round(totalValue * config.getCryptoFeeRate());
             long received = totalValue - fee;
 
@@ -223,11 +221,11 @@ public class CryptoMarket {
                 if (entry.getValue() <= 0) continue;
                 CryptoAsset asset = assets.get(entry.getKey());
                 if (asset == null) continue;
-                double qty = (double) entry.getValue() / CRYPTO_MULTIPLIER;
+                long qty = entry.getValue();
                 long sellP = asset.getSellPrice() > 0 ? asset.getSellPrice() : asset.getCurrentRate();
-                long value = entry.getValue() * sellP / CRYPTO_MULTIPLIER;
+                long value = qty * sellP;
                 if (!first) sb.append("・");
-                sb.append(String.format("&f%s×%.2f&e（評価額 &f%s&e）",
+                sb.append(String.format("&f%s×%d&e（評価額 &f%s&e）",
                         entry.getKey(), qty, config.format(value)));
                 first = false;
             }

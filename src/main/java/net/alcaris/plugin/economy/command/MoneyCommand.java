@@ -125,9 +125,8 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
             CommandUtils.msg(sender, MessageConfig.format(MessageConfig.PLAYER_NOT_FOUND, "player", args[1]));
             return true;
         }
-        double amount = CommandUtils.parsePositiveDouble(args[2]);
-        if (amount < 0) { CommandUtils.msg(sender, MessageConfig.INVALID_AMOUNT); return true; }
-        long internal = CommandUtils.toInternal(amount);
+        long internal = CommandUtils.parsePositiveAmount(args[2]);
+        if (internal < 0) { CommandUtils.msg(sender, MessageConfig.INVALID_AMOUNT); return true; }
 
         long estimatedFee = transferManager.calculateFee(internal, TransferManager.TransferType.REMOTE_PAY);
         if (estimatedFee >= internal) {
@@ -182,9 +181,8 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
         }
         OfflinePlayer target = CommandUtils.findOfflinePlayer(args[1]);
         if (target == null) { CommandUtils.msg(sender, MessageConfig.format(MessageConfig.PLAYER_NOT_FOUND, "player", args[1])); return true; }
-        double amount = CommandUtils.parsePositiveDouble(args[2]);
-        if (amount < 0) { CommandUtils.msg(sender, MessageConfig.INVALID_AMOUNT); return true; }
-        long internal = CommandUtils.toInternal(amount);
+        long internal = CommandUtils.parsePositiveAmount(args[2]);
+        if (internal < 0) { CommandUtils.msg(sender, MessageConfig.INVALID_AMOUNT); return true; }
         String targetName = CommandUtils.displayName(target);
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
@@ -203,9 +201,8 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
         }
         OfflinePlayer target = CommandUtils.findOfflinePlayer(args[1]);
         if (target == null) { CommandUtils.msg(sender, MessageConfig.format(MessageConfig.PLAYER_NOT_FOUND, "player", args[1])); return true; }
-        double amount = CommandUtils.parsePositiveDouble(args[2]);
-        if (amount < 0) { CommandUtils.msg(sender, MessageConfig.INVALID_AMOUNT); return true; }
-        long internal = CommandUtils.toInternal(amount);
+        long internal = CommandUtils.parsePositiveAmount(args[2]);
+        if (internal < 0) { CommandUtils.msg(sender, MessageConfig.INVALID_AMOUNT); return true; }
         String targetName = CommandUtils.displayName(target);
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
@@ -224,9 +221,8 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
         }
         OfflinePlayer target = CommandUtils.findOfflinePlayer(args[1]);
         if (target == null) { CommandUtils.msg(sender, MessageConfig.format(MessageConfig.PLAYER_NOT_FOUND, "player", args[1])); return true; }
-        double amount = CommandUtils.parsePositiveDouble(args[2]);
-        if (amount < 0) { CommandUtils.msg(sender, MessageConfig.INVALID_AMOUNT); return true; }
-        long internal = CommandUtils.toInternal(amount);
+        long internal = CommandUtils.parsePositiveAmount(args[2]);
+        if (internal < 0) { CommandUtils.msg(sender, MessageConfig.INVALID_AMOUNT); return true; }
         String targetName = CommandUtils.displayName(target);
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             try {

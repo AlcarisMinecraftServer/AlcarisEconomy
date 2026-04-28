@@ -85,9 +85,8 @@ public class TreasuryCommand implements CommandExecutor, TabCompleter {
     private boolean cmdDeposit(CommandSender sender, String[] args) {
         if (args.length < 3) { CommandUtils.msg(sender, MessageConfig.format(MessageConfig.USAGE, "usage", "/treasury deposit <key> <amount>")); return true; }
         String key = args[1];
-        double amount = CommandUtils.parsePositiveDouble(args[2]);
-        if (amount < 0) { CommandUtils.msg(sender, MessageConfig.INVALID_AMOUNT); return true; }
-        long internal = CommandUtils.toInternal(amount);
+        long internal = CommandUtils.parsePositiveAmount(args[2]);
+        if (internal < 0) { CommandUtils.msg(sender, MessageConfig.INVALID_AMOUNT); return true; }
         UUID actorUuid = sender instanceof Player p ? p.getUniqueId() : null;
 
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
@@ -106,9 +105,8 @@ public class TreasuryCommand implements CommandExecutor, TabCompleter {
     private boolean cmdWithdraw(CommandSender sender, String[] args) {
         if (args.length < 4) { CommandUtils.msg(sender, MessageConfig.format(MessageConfig.USAGE, "usage", "/treasury withdraw <key> <amount> <player>")); return true; }
         String key = args[1];
-        double amount = CommandUtils.parsePositiveDouble(args[2]);
-        if (amount < 0) { CommandUtils.msg(sender, MessageConfig.INVALID_AMOUNT); return true; }
-        long internal = CommandUtils.toInternal(amount);
+        long internal = CommandUtils.parsePositiveAmount(args[2]);
+        if (internal < 0) { CommandUtils.msg(sender, MessageConfig.INVALID_AMOUNT); return true; }
         OfflinePlayer target = CommandUtils.findOfflinePlayer(args[3]);
         if (target == null) { CommandUtils.msg(sender, MessageConfig.format(MessageConfig.PLAYER_NOT_FOUND, "player", args[3])); return true; }
         UUID actorUuid = sender instanceof Player p ? p.getUniqueId() : null;
@@ -156,9 +154,8 @@ public class TreasuryCommand implements CommandExecutor, TabCompleter {
         if (args.length < 4) { CommandUtils.msg(sender, MessageConfig.format(MessageConfig.USAGE, "usage", "/treasury transfer <from> <to> <amount>")); return true; }
         String fromKey = args[1];
         String toKey = args[2];
-        double amount = CommandUtils.parsePositiveDouble(args[3]);
-        if (amount < 0) { CommandUtils.msg(sender, MessageConfig.INVALID_AMOUNT); return true; }
-        long internal = CommandUtils.toInternal(amount);
+        long internal = CommandUtils.parsePositiveAmount(args[3]);
+        if (internal < 0) { CommandUtils.msg(sender, MessageConfig.INVALID_AMOUNT); return true; }
 
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             try {

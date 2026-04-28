@@ -27,7 +27,7 @@ public class BankWithdrawUI extends AbstractBankUI {
         this.player = player;
         this.config = plugin.getEconomyConfig();
         this.balance = balance;
-        this.numpad = new BankNumpadHelper(balance / EconomyConfig.MULTIPLIER);
+        this.numpad = new BankNumpadHelper(balance);
         buildLayout();
     }
 
@@ -61,7 +61,7 @@ public class BankWithdrawUI extends AbstractBankUI {
 
         setButton(27, item(Material.BARRIER, "&cC",      10006), () -> { numpad.backspace();  updateHeader(); });
         setButton(28, numpadKey("0"),                            () -> { numpad.digit(0);     updateHeader(); });
-        setButton(29, item(Material.BARRIER, "&f.",      10017), () -> { numpad.doubleZero(); updateHeader(); });
+        setButton(29, item(Material.BARRIER, "&f00",     10017), () -> { numpad.doubleZero(); updateHeader(); });
 
         setButton(33, item(Material.BARRIER, "&7戻る",   10001), () -> BankMainUI.openAsync(plugin, player));
         setButton(35, item(Material.BARRIER, "&a&l確定", 10005), this::doWithdraw);
@@ -71,15 +71,15 @@ public class BankWithdrawUI extends AbstractBankUI {
 
     private void updateHeader() {
         ItemStack header = item(Material.CYAN_STAINED_GLASS_PANE,
-                "&b残高: &f" + config.format(balance) + "  &b入力: &f" + config.format(numpad.getInternal()));
+                "&b残高: &f" + config.format(balance) + "  &b入力: &f" + config.format(numpad.getAmount()));
         for (int i = 3; i <= 8; i++) inventory.setItem(i, header);
     }
 
     private void doWithdraw() {
-        long internal = numpad.getInternal();
-        if (internal <= 0) { player.sendActionBar(c("&c金額を入力してください")); return; }
+        long amount = numpad.getAmount();
+        if (amount <= 0) { player.sendActionBar(c("&c金額を入力してください")); return; }
 
-        int needed = estimateItemCount(internal);
+        int needed = estimateItemCount(amount);
         int free = countFreeSlots(player);
         if (needed > free) { player.sendActionBar(c("&cインベントリの空きが不足しています")); return; }
 
@@ -97,17 +97,17 @@ public class BankWithdrawUI extends AbstractBankUI {
                     return;
                 }
                 long currentBalance = repo.getBalance(uuid);
-                if (currentBalance < internal) {
+                if (currentBalance < amount) {
                     Bukkit.getScheduler().runTask(plugin, () -> {
                         player.sendActionBar(c("&c残高が不足しています"));
                         restoreConfirmButton();
                     });
                     return;
                 }
-                repo.addBalance(uuid, -internal);
+                repo.addBalance(uuid, -amount);
                 repo.updateLastTxnAt(uuid);
 
-                List<ItemStack> items = CashItem.makeChange(internal,
+                List<ItemStack> items = CashItem.makeChange(amount,
                         config.getDenominations(), config.getServerKey());
 
                 Bukkit.getScheduler().runTask(plugin, () -> {
@@ -136,15 +136,15 @@ public class BankWithdrawUI extends AbstractBankUI {
         return item(Material.BARRIER, "&f" + label, 10007 + digit);
     }
 
-    private int estimateItemCount(long internal) {
+    private int estimateItemCount(long amount) {
         int count = 0;
-        long remaining = internal;
+        long remaining = amount;
         for (EconomyConfig.Denomination d : config.getDenominations()) {
-            long dInternal = (long) d.amount() * EconomyConfig.MULTIPLIER;
-            long stacks = remaining / dInternal / 64;
+            long denom = d.amount();
+            long stacks = remaining / denom / 64;
             count += (int) stacks;
-            if (remaining / dInternal % 64 > 0) count++;
-            remaining %= dInternal;
+            if (remaining / denom % 64 > 0) count++;
+            remaining %= denom;
         }
         return count + 1;
     }

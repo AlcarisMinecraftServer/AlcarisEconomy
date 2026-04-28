@@ -115,7 +115,7 @@ public class BankCommand implements CommandExecutor, TabCompleter {
                     if (item == null) continue;
                     if (CashItem.hasCashMarker(item)) {
                         if (CashItem.isValid(item, serverKey, validAmounts)) {
-                            total += (long) CashItem.getAmount(item) * item.getAmount() * EconomyConfig.MULTIPLIER;
+                            total += (long) CashItem.getAmount(item) * item.getAmount();
                             inv.clear(i);
                         } else {
                             inv.clear(i);
@@ -145,9 +145,8 @@ public class BankCommand implements CommandExecutor, TabCompleter {
             CommandUtils.msg(sender, MessageConfig.format(MessageConfig.USAGE, "usage", "/bank withdraw <amount>"));
             return true;
         }
-        double amount = CommandUtils.parsePositiveDouble(args[1]);
-        if (amount < 0) { CommandUtils.msg(sender, MessageConfig.INVALID_AMOUNT); return true; }
-        long internal = CommandUtils.toInternal(amount);
+        long internal = CommandUtils.parsePositiveAmount(args[1]);
+        if (internal < 0) { CommandUtils.msg(sender, MessageConfig.INVALID_AMOUNT); return true; }
 
         int denomsNeeded = estimateItemCount(internal);
         int freeSlots = countFreeSlots(player);
@@ -191,9 +190,8 @@ public class BankCommand implements CommandExecutor, TabCompleter {
         }
         OfflinePlayer target = CommandUtils.findOfflinePlayer(args[1]);
         if (target == null) { CommandUtils.msg(sender, MessageConfig.format(MessageConfig.PLAYER_NOT_FOUND, "player", args[1])); return true; }
-        double amount = CommandUtils.parsePositiveDouble(args[2]);
-        if (amount < 0) { CommandUtils.msg(sender, MessageConfig.INVALID_AMOUNT); return true; }
-        long internal = CommandUtils.toInternal(amount);
+        long internal = CommandUtils.parsePositiveAmount(args[2]);
+        if (internal < 0) { CommandUtils.msg(sender, MessageConfig.INVALID_AMOUNT); return true; }
         String targetName = CommandUtils.displayName(target);
 
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
@@ -271,15 +269,15 @@ public class BankCommand implements CommandExecutor, TabCompleter {
                 .collect(java.util.stream.Collectors.toList());
     }
 
-    private int estimateItemCount(long internal) {
+    private int estimateItemCount(long amount) {
         int count = 0;
-        long remaining = internal;
+        long remaining = amount;
         for (EconomyConfig.Denomination d : config.getDenominations()) {
-            long dInternal = (long) d.amount() * EconomyConfig.MULTIPLIER;
-            long stacks = remaining / dInternal / 64;
+            long denom = d.amount();
+            long stacks = remaining / denom / 64;
             count += (int) stacks;
-            if (remaining / dInternal % 64 > 0) count++;
-            remaining %= dInternal;
+            if (remaining / denom % 64 > 0) count++;
+            remaining %= denom;
         }
         return count + 1;
     }

@@ -1,6 +1,5 @@
 package net.alcaris.plugin.economy.command;
 
-import net.alcaris.plugin.economy.config.EconomyConfig;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
@@ -52,17 +51,13 @@ public final class CommandUtils {
         };
     }
 
-    public static double parsePositiveDouble(String s) {
+    public static long parsePositiveAmount(String s) {
         try {
-            double v = Double.parseDouble(s);
+            long v = Long.parseLong(s);
             return v > 0 ? v : -1;
         } catch (NumberFormatException e) {
             return -1;
         }
-    }
-
-    public static long toInternal(double yen) {
-        return Math.round(yen * EconomyConfig.MULTIPLIER);
     }
 
     public static OfflinePlayer findOfflinePlayer(String name) {

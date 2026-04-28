@@ -32,7 +32,7 @@ public class BankTransferUI extends AbstractBankUI {
         this.config = plugin.getEconomyConfig();
         this.balance = balance;
         this.atmFee = atmFee;
-        long maxYen = Math.max(0, (balance - atmFee) / EconomyConfig.MULTIPLIER);
+        long maxYen = Math.max(0, balance - atmFee);
         this.numpad = new BankNumpadHelper(maxYen);
         buildLayout();
     }
@@ -68,7 +68,7 @@ public class BankTransferUI extends AbstractBankUI {
 
         setButton(27, item(Material.BARRIER, "&cC",      10006), () -> { numpad.backspace();   updateHeader(); });
         setButton(28, numpadKey("0"),                            () -> { numpad.digit(0);       updateHeader(); });
-        setButton(29, item(Material.BARRIER, "&f.",      10017), () -> { numpad.doubleZero();   updateHeader(); });
+        setButton(29, item(Material.BARRIER, "&f00",     10017), () -> { numpad.doubleZero();   updateHeader(); });
 
         setButton(32, item(Material.BARRIER, "&7戻る",   10001), () -> BankMainUI.openAsync(plugin, player));
         setButton(35, item(Material.BARRIER, "&a&l送金", 10005), this::doTransfer);
@@ -82,13 +82,13 @@ public class BankTransferUI extends AbstractBankUI {
                 "&b振込先: &f" + targetName
                         + "  &b残高: &f" + config.format(balance)
                         + "  &b手数料: &f" + config.format(atmFee)
-                        + "  &b入力: &f" + config.format(numpad.getInternal()));
+                        + "  &b入力: &f" + config.format(numpad.getAmount()));
         for (int i = 3; i <= 8; i++) inventory.setItem(i, header);
     }
 
     private void doTransfer() {
-        long internal = numpad.getInternal();
-        if (internal <= 0) { player.sendActionBar(c("&c金額を入力してください")); return; }
+        long amount = numpad.getAmount();
+        if (amount <= 0) { player.sendActionBar(c("&c金額を入力してください")); return; }
 
         setButton(35, item(Material.BARRIER, "", 10000), null);
 
@@ -97,7 +97,7 @@ public class BankTransferUI extends AbstractBankUI {
 
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             TransferManager.TransferResult result = plugin.getTransferManager()
-                    .transfer(fromUuid, toUuid, internal, TransferManager.TransferType.ATM_TRANSFER);
+                    .transfer(fromUuid, toUuid, amount, TransferManager.TransferType.ATM_TRANSFER);
 
             Bukkit.getScheduler().runTask(plugin, () -> {
                 if (result.success()) {

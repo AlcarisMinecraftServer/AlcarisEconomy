@@ -25,8 +25,6 @@ import java.util.stream.Collectors;
 
 public class CryptoCommand implements CommandExecutor, TabCompleter {
 
-    private static final long CRYPTO_MULTIPLIER = 100L;
-
     private final AlcarisEconomy plugin;
     private final CryptoMarket market;
     private final EconomyConfig config;
@@ -84,15 +82,14 @@ public class CryptoCommand implements CommandExecutor, TabCompleter {
             CommandUtils.msg(sender, MessageConfig.format(MessageConfig.CRYPTO_NOT_FOUND, "symbol", symbol));
             return true;
         }
-        double qty = CommandUtils.parsePositiveDouble(args[2]);
-        if (qty < 0) { CommandUtils.msg(sender, MessageConfig.INVALID_AMOUNT); return true; }
-        long quantityInternal = Math.round(qty * CRYPTO_MULTIPLIER);
+        long quantity = CommandUtils.parsePositiveAmount(args[2]);
+        if (quantity < 0) { CommandUtils.msg(sender, MessageConfig.INVALID_AMOUNT); return true; }
 
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            CryptoMarket.TradeResult result = market.buy(player.getUniqueId(), symbol, quantityInternal);
+            CryptoMarket.TradeResult result = market.buy(player.getUniqueId(), symbol, quantity);
             if (result.success()) {
                 CommandUtils.msg(sender, MessageConfig.format(MessageConfig.CRYPTO_BOUGHT,
-                        "amount", String.format("%.2f", qty),
+                        "amount", String.valueOf(quantity),
                         "symbol", symbol,
                         "cost", config.format(result.cost()),
                         "fee", config.format(result.fee())));
@@ -115,15 +112,14 @@ public class CryptoCommand implements CommandExecutor, TabCompleter {
             CommandUtils.msg(sender, MessageConfig.format(MessageConfig.CRYPTO_NOT_FOUND, "symbol", symbol));
             return true;
         }
-        double qty = CommandUtils.parsePositiveDouble(args[2]);
-        if (qty < 0) { CommandUtils.msg(sender, MessageConfig.INVALID_AMOUNT); return true; }
-        long quantityInternal = Math.round(qty * CRYPTO_MULTIPLIER);
+        long quantity = CommandUtils.parsePositiveAmount(args[2]);
+        if (quantity < 0) { CommandUtils.msg(sender, MessageConfig.INVALID_AMOUNT); return true; }
 
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            CryptoMarket.TradeResult result = market.sell(player.getUniqueId(), symbol, quantityInternal);
+            CryptoMarket.TradeResult result = market.sell(player.getUniqueId(), symbol, quantity);
             if (result.success()) {
                 CommandUtils.msg(sender, MessageConfig.format(MessageConfig.CRYPTO_SOLD,
-                        "amount", String.format("%.2f", qty),
+                        "amount", String.valueOf(quantity),
                         "symbol", symbol,
                         "received", config.format(result.cost() - result.fee()),
                         "fee", config.format(result.fee())));
@@ -150,9 +146,9 @@ public class CryptoCommand implements CommandExecutor, TabCompleter {
                 for (Map.Entry<String, Long> entry : portfolio.entrySet()) {
                     CryptoAsset asset = market.getAsset(entry.getKey());
                     if (asset == null || entry.getValue() <= 0) continue;
-                    double qty = (double) entry.getValue() / CRYPTO_MULTIPLIER;
-                    long value = entry.getValue() * asset.getCurrentRate() / CRYPTO_MULTIPLIER;
-                    CommandUtils.msg(sender, String.format("&e%-6s &f%.2f &7(≈ &a%s&7)",
+                    long qty = entry.getValue();
+                    long value = qty * asset.getCurrentRate();
+                    CommandUtils.msg(sender, String.format("&e%-6s &f%d &7(≈ &a%s&7)",
                             entry.getKey(), qty, config.format(value)));
                 }
             } catch (SQLException e) {
@@ -202,12 +198,11 @@ public class CryptoCommand implements CommandExecutor, TabCompleter {
             return true;
         }
         if (sub.equals("rate")) {
-            double rateYen = CommandUtils.parsePositiveDouble(args[3]);
-            if (rateYen < 0) { CommandUtils.msg(sender, MessageConfig.INVALID_AMOUNT); return true; }
-            long rateInternal = CommandUtils.toInternal(rateYen);
-            market.adminSetRate(symbol, rateInternal);
+            long rate = CommandUtils.parsePositiveAmount(args[3]);
+            if (rate < 0) { CommandUtils.msg(sender, MessageConfig.INVALID_AMOUNT); return true; }
+            market.adminSetRate(symbol, rate);
             CommandUtils.msg(sender, MessageConfig.format(MessageConfig.CRYPTO_RATE_SET,
-                    "symbol", symbol, "rate", config.format(rateInternal)));
+                    "symbol", symbol, "rate", config.format(rate)));
         } else if (sub.equals("event")) {
             try {
                 double pct = Double.parseDouble(args[3]) / 100.0;

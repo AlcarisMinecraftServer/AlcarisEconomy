@@ -1,7 +1,5 @@
 package net.alcaris.plugin.economy.gui;
 
-import net.alcaris.plugin.economy.config.EconomyConfig;
-
 public class BankNumpadHelper {
 
     private long currentInput = 0;
@@ -37,7 +35,7 @@ public class BankNumpadHelper {
         currentInput = maxYen;
     }
 
-    public long getInternal() {
-        return currentInput * EconomyConfig.MULTIPLIER;
+    public long getAmount() {
+        return currentInput;
     }
 }

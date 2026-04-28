@@ -76,7 +76,7 @@ public class BankDepositUI extends AbstractBankUI {
             ItemStack item = inventory.getItem(i);
             if (item == null) continue;
             if (CashItem.hasCashMarker(item)) {
-                total += (long) CashItem.getAmount(item) * item.getAmount() * EconomyConfig.MULTIPLIER;
+                total += (long) CashItem.getAmount(item) * item.getAmount();
             }
         }
         return total;
@@ -119,7 +119,7 @@ public class BankDepositUI extends AbstractBankUI {
             if (it == null) continue;
             if (CashItem.hasCashMarker(it)) {
                 if (CashItem.isValid(it, serverKey, validAmounts)) {
-                    total += (long) CashItem.getAmount(it) * it.getAmount() * EconomyConfig.MULTIPLIER;
+                    total += (long) CashItem.getAmount(it) * it.getAmount();
                 } else {
                     plugin.getLogger().warning("[BankDepositUI] Forged item removed from " + player.getName());
                 }

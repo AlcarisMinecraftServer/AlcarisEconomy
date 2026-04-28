@@ -59,9 +59,8 @@ public class ChequeCommand implements CommandExecutor, TabCompleter {
             CommandUtils.msg(sender, "&c使い方: /cheque issue <金額> [メモ]");
             return true;
         }
-        double amount = CommandUtils.parsePositiveDouble(args[1]);
-        if (amount < 0) { CommandUtils.msg(sender, "&c無効な金額です。"); return true; }
-        long internal = CommandUtils.toInternal(amount);
+        long internal = CommandUtils.parsePositiveAmount(args[1]);
+        if (internal < 0) { CommandUtils.msg(sender, "&c無効な金額です。"); return true; }
 
         String note = null;
         if (args.length >= 3) {

@@ -3,6 +3,8 @@ package net.alcaris.plugin.economy.database;
 import net.alcaris.plugin.core.database.DatabaseManager;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.logging.Logger;
@@ -195,7 +197,60 @@ public class SchemaInitializer {
                 """);
             createIndexIfAbsent(stmt, "idx_loan_log_uuid", "loan_log", "(`uuid`, `created_at` DESC)");
 
+            stmt.executeUpdate("""
+                CREATE TABLE IF NOT EXISTS `schema_meta` (
+                    `key`   VARCHAR(64) NOT NULL PRIMARY KEY,
+                    `value` VARCHAR(64) NOT NULL
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+                """);
+
+            runDecimalRemovalMigration(conn, stmt);
+
             logger.info("Database schema initialized successfully.");
+        }
+    }
+
+    private void runDecimalRemovalMigration(Connection conn, Statement stmt) throws SQLException {
+        if (isMigrationApplied(conn, "decimal_removed_v1")) return;
+
+        logger.info("Running decimal removal migration (dividing all amounts by 100)...");
+        String[] divisions = {
+                "UPDATE `account`             SET `balance` = `balance` / 100",
+                "UPDATE `treasury`            SET `balance` = `balance` / 100",
+                "UPDATE `transfer_log`        SET `amount` = `amount` / 100, `fee` = `fee` / 100",
+                "UPDATE `treasury_log`        SET `amount` = `amount` / 100",
+                "UPDATE `interest_log`        SET `amount` = `amount` / 100",
+                "UPDATE `crypto_asset`        SET `current_rate` = `current_rate` / 100, `buy_price` = `buy_price` / 100, `sell_price` = `sell_price` / 100",
+                "UPDATE `crypto_rate_history` SET `rate` = `rate` / 100",
+                "UPDATE `crypto_holding`      SET `amount` = `amount` / 100",
+                "UPDATE `cheque`              SET `amount` = `amount` / 100",
+                "UPDATE `player_loan`         SET `principal` = `principal` / 100, `repay_amount` = `repay_amount` / 100, `remaining` = `remaining` / 100",
+                "UPDATE `server_loan`         SET `principal` = `principal` / 100, `interest_debt` = `interest_debt` / 100, `autopay_amount` = `autopay_amount` / 100 WHERE 1",
+                "UPDATE `loan_log`            SET `amount` = `amount` / 100",
+        };
+        for (String sql : divisions) {
+            int rows = stmt.executeUpdate(sql);
+            logger.info("  applied: " + sql + " (" + rows + " rows)");
+        }
+        markMigrationApplied(conn, "decimal_removed_v1");
+        logger.info("Decimal removal migration completed.");
+    }
+
+    private boolean isMigrationApplied(Connection conn, String key) throws SQLException {
+        try (PreparedStatement ps = conn.prepareStatement("SELECT 1 FROM `schema_meta` WHERE `key` = ?")) {
+            ps.setString(1, key);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    private void markMigrationApplied(Connection conn, String key) throws SQLException {
+        try (PreparedStatement ps = conn.prepareStatement(
+                "INSERT INTO `schema_meta` (`key`, `value`) VALUES (?, ?)")) {
+            ps.setString(1, key);
+            ps.setString(2, String.valueOf(System.currentTimeMillis()));
+            ps.executeUpdate();
         }
     }
 
